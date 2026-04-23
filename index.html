@@ -1225,25 +1225,6 @@ button{font-family:var(--sans);cursor:pointer}
   <div class="modal-box">
     <div class="modal-top"><div class="modal-title">Avis de valeur</div><div class="modal-sub" id="avis-sub"></div></div>
     <div class="modal-body">
-
-      <!-- Zone import PDF -->
-      <div id="av-pdf-zone" style="margin-bottom:16px">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px">Importer votre avis de valeur PDF</div>
-        <label for="av-pdf-input" id="av-pdf-drop" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:2px dashed var(--border);border-radius:10px;padding:20px;cursor:pointer;transition:all .2s;background:#fff">
-          <span style="font-size:28px">📄</span>
-          <div style="font-size:13px;font-weight:500;color:var(--ink)">Cliquer ou glisser le PDF ici</div>
-          <div style="font-size:11px;color:var(--muted)">Perizia, Evaluat'immo, MyNotary, Immovalor…</div>
-        </label>
-        <input type="file" id="av-pdf-input" accept=".pdf" style="display:none" onchange="lirePdfAvis(this)">
-        <div id="av-pdf-status" style="display:none;margin-top:10px;padding:10px 14px;border-radius:8px;font-size:12px"></div>
-      </div>
-
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-        <div style="flex:1;height:1px;background:var(--border)"></div>
-        <div style="font-size:11px;color:var(--muted);white-space:nowrap">ou saisir manuellement</div>
-        <div style="flex:1;height:1px;background:var(--border)"></div>
-      </div>
-
       <div class="fld"><label>Prix estimé (€) *</label><input type="number" id="av-prix" placeholder="370000"></div>
       <div class="f2">
         <div class="fld"><label>Fourchette basse (€)</label><input type="number" id="av-bas" placeholder="360000"></div>
@@ -2980,15 +2961,6 @@ function openAvisModal(id){
   document.getElementById('av-bas').value=c.avis?c.avis.fourchetteBas:''
   document.getElementById('av-haut').value=c.avis?c.avis.fourchetteHaut:''
   document.getElementById('av-date').value=''
-  // Reset zone PDF
-  const status = document.getElementById('av-pdf-status')
-  const drop = document.getElementById('av-pdf-drop')
-  if(status) status.style.display='none'
-  if(drop){
-    drop.style.borderColor='var(--border)'
-    drop.style.background='#fff'
-    drop.innerHTML='<span style="font-size:28px">📄</span><div style="font-size:13px;font-weight:500;color:var(--ink)">Cliquer ou glisser le PDF ici</div><div style="font-size:11px;color:var(--muted)">Perizia, Evaluat\'immo, MyNotary, Immovalor…</div>'
-  }
   openModal('modal-avis')
 }
 
