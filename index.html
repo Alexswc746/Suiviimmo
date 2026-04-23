@@ -1238,10 +1238,9 @@ button{font-family:var(--sans);cursor:pointer}
           </select>
         </div>
       </div>
-      <div class="fld"><label>Importer le PDF</label>
-        <div style="border:2px dashed var(--border);border-radius:9px;padding:20px;text-align:center;cursor:pointer;color:var(--muted);font-size:13px" onclick="toast('Sélection du fichier…','ok')">
-          📄 Cliquer pour importer le PDF de l'avis de valeur
-        </div>
+      <div class="fld"><label>Référence du document (optionnel)</label>
+        <input type="text" id="av-ref" placeholder="Ex: Avis Perizia - Michel Renard - Avril 2025" style="font-size:13px">
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">Note: L'import de PDF sera disponible dans une prochaine version. Notez ici la référence de votre document.</div>
       </div>
       <div class="modal-footer">
         <button class="btn-cancel" onclick="closeModal('modal-avis')">Annuler</button>
@@ -1923,8 +1922,8 @@ function renderDVF(){
           <span class="opp-badge ${opp.cls}" style="display:inline-flex;margin-top:4px">${d.opp}</span>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--border-light)">
-        ${[['Prix achat',fmt(c.purchase)],['Valeur estimee',fmt(d.est)],['Plus-value','+'+fmt(d.gainEur)],['Prix m',fmtM2(d.avgM2)]].map(([l,v],i)=>`<div style="padding:11px 14px;text-align:center;${i<3?'border-right:1px solid var(--border-light)':''}"><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:3px">${l}</div><div style="font-size:13px;font-weight:600;${i>0?'color:var(--green-mid)':''}">${v}</div></div>`).join('')}
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border-light)">
+        ${[['Prix achat',fmt(c.purchase)],['Valeur DVF estimee',fmt(d.est)],['Plus-value','+'+fmt(d.gainEur)]].map(([l,v],i)=>`<div style="padding:11px 14px;text-align:center;${i<2?'border-right:1px solid var(--border-light)':''}"><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:3px">${l}</div><div style="font-size:13px;font-weight:600;${i>0?'color:var(--green-mid)':''}">${v}</div></div>`).join('')}
       </div>
     </div>`
   }).join('')+`</div>`
@@ -2034,6 +2033,10 @@ function openDetClient(id){
           <button class="ba ba-ghost" onclick="openNego('${id}')"> Proposer une condition</button>
           <button class="ba" style="background:var(--cream);border:1px solid var(--border);color:var(--ink)" onclick="openAvisModal('${id}')"> ${c.avis?'Mettre à jour l\'avis':'Ajouter avis de valeur'}</button>
         </div>
+        <div style="padding-top:10px;border-top:1px solid var(--border-light);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap">
+          <button onclick="basculerClientProspect('${id}')" style="background:var(--warm);color:var(--muted);border:1px solid var(--border);padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s" onmouseover="this.style.background='var(--cream)'" onmouseout="this.style.background='var(--warm)'">↩ Basculer en prospect</button>
+          <button onclick="supprimerClient('${id}')" style="background:var(--hot-bg);color:var(--hot);border:1px solid rgba(192,57,43,.2);padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s" onmouseover="this.style.background='#f5c6c3'" onmouseout="this.style.background='var(--hot-bg)'">🗑 Supprimer ce client</button>
+        </div>
       </div>
     </div>
 
@@ -2116,7 +2119,7 @@ function openDetProspect(id){
         <div class="sec-actions">
           <button class="sa" onclick="openAchatProspect('${id}')" style="background:var(--mint-pale);color:var(--green);border-color:var(--mint-light);font-weight:600"> Il a acheté ?</button>
           <button class="sa" onclick="toast('Message recommandation copie','ok')"> Demander recommandation</button>
-          <button class="sa" onclick="toast('Info metier preparee','ok')"> Parler du metier</button>
+          <button class="sa" onclick="supprimerProspect('${id}')" style="background:var(--hot-bg);color:var(--hot);border-color:rgba(192,57,43,.2)">🗑 Supprimer</button>
         </div>
       </div>
     </div>
@@ -2154,15 +2157,15 @@ function scoreExplainHTML(reasons){
 }
 
 function infoGrid(c,years){
-  const items=[
-    ['Prix d\'achat',fmt(c.purchase)],
-    ['Surface',c.surface+' m'],
-    ['Duree de detention',years+' ans'],
-    ['Prix m DVF',{val:c.dvf?fmtM2(c.dvf.avgM2):'',hi:true}]
-  ]
+  const items=[]
+  if(c.purchase) items.push(['Prix d\'achat',fmt(c.purchase)])
+  if(c.surface) items.push(['Surface',c.surface+' m²'])
+  if(years > 0) items.push(['Durée de détention',years+' an'+(years>1?'s':'')])
+  if(c.purchase && c.surface) items.push(['Prix m² à l\'achat',{val:fmtM2(Math.round(c.purchase/c.surface)),hi:false}])
   if(c.finBail) items.push([' Fin de bail',{val:c.finBail,hi:true,hot:true}])
+  if(!items.length) return ''
   return`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
-    ${items.map(([l,v])=>`<div style="background:${v&&v.hot?'var(--hot-bg)':'var(--warm)'};border-radius:var(--r);padding:14px 16px${v&&v.hot?';border:1px solid rgba(192,57,43,.2)':''}"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${v&&v.hot?'var(--hot)':'var(--muted)'};margin-bottom:4px">${l}</div><div style="font-family:var(--serif);font-size:22px;font-weight:700;${v&&v.hi?'color:var(--green-mid)':''}${v&&v.hot?';color:var(--hot)':''}">${v&&v.val?v.val:v}</div></div>`).join('')}
+    ${items.map(([l,v])=>`<div style="background:${v&&v.hot?'var(--hot-bg)':'var(--warm)'};border-radius:var(--r);padding:14px 16px${v&&v.hot?';border:1px solid rgba(192,57,43,.2)':''}"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${v&&v.hot?'var(--hot)':'var(--muted)'};margin-bottom:4px">${l}</div><div style="font-family:var(--serif);font-size:22px;font-weight:700;${v&&v.hi?'color:var(--green-mid)':''}${v&&v.hot?';color:var(--hot)':''}">${v&&v.val!==undefined?v.val:v}</div></div>`).join('')}
   </div>`
 }
 
@@ -2673,6 +2676,42 @@ function openAchatProspect(id){
   openModal('modal-achat-prospect')
 }
 
+async function basculerClientProspect(id){
+  const c = CLIENTS[id]; if(!c) return
+  if(!confirm('Basculer '+c.fn+' '+c.ln+' en prospect ? Il sera retiré de l\'onglet Clients.')) return
+
+  // Créer le prospect depuis le client
+  const newP = {
+    id: 'new-'+Date.now(),
+    fn: c.fn, ln: c.ln,
+    init: c.init, avCls: 'av-cool',
+    email: c.email||'', phone: c.phone||'',
+    visite: c.city||'', dateVisite: c.lastDate||'',
+    projet: 'inconnu', budget: '',
+    secteur: c.city||'', statut: 'invite',
+    niveau: 'froid', score: 15,
+    raisonNonAchat: null, raisonDetail: null, emailCommercial: false,
+    derniere: 'Bascule depuis client',
+    lastDate: c.lastDate||'', lastNote: c.lastNote||'',
+    notes: c.notes||'', scoreReasons: ['Bascule depuis client'],
+    journal: []
+  }
+  PROSPECTS.unshift(newP)
+  await saveProspect(newP)
+
+  // Supprimer le client
+  if(currentUserId && !id.startsWith('new-')){
+    await sb.from('clients').delete().eq('id', id)
+  }
+  delete CLIENTS[id]
+
+  closeDet()
+  renderClients()
+  renderProspects(currentFilter)
+  renderDashboard()
+  toast(c.fn+' '+c.ln+' bascule en prospect','ok')
+}
+
 async function basculerProspectAcquereur(){
   const p = PROSPECTS.find(x=>x.id===currentAchatProspectId);if(!p)return
   // Créer le client depuis le prospect
@@ -2794,6 +2833,37 @@ function saveNote(){
   else openDetClient(id)
 }
 let currentAvisClientId = null
+
+// ── SUPPRIMER CLIENT ───────────────────────────────────────────
+async function supprimerClient(id){
+  const c = CLIENTS[id]; if(!c) return
+  if(!confirm('Supprimer définitivement '+c.fn+' '+c.ln+' ? Cette action est irréversible.')) return
+  if(currentUserId && !id.startsWith('new-')){
+    await sb.from('journal_client').delete().eq('client_id', id)
+    await sb.from('clients').delete().eq('id', id)
+  }
+  delete CLIENTS[id]
+  closeDet()
+  renderClients()
+  renderDashboard()
+  toast(c.fn+' '+c.ln+' supprimé','ok')
+}
+
+// ── SUPPRIMER PROSPECT ─────────────────────────────────────────
+async function supprimerProspect(id){
+  const p = PROSPECTS.find(x=>x.id===id); if(!p) return
+  if(!confirm('Supprimer définitivement '+p.fn+' '+p.ln+' ? Cette action est irréversible.')) return
+  if(currentUserId && !id.startsWith('new-')){
+    await sb.from('journal_prospect').delete().eq('prospect_id', id)
+    await sb.from('prospects').delete().eq('id', id)
+  }
+  const idx = PROSPECTS.findIndex(x=>x.id===id)
+  if(idx>-1) PROSPECTS.splice(idx,1)
+  closeDet()
+  renderProspects(currentFilter)
+  renderDashboard()
+  toast(p.fn+' '+p.ln+' supprimé','ok')
+}
 
 function openAvisModal(id){
   const c=CLIENTS[id];if(!c)return
