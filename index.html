@@ -538,11 +538,11 @@ button{font-family:var(--sans);cursor:pointer}
       </div>
 
       <!-- Banner chauds -->
-      <div id="hot-banner" class="hot-prospect-banner" style="margin-bottom:20px">
+      <div id="hot-banner" class="hot-prospect-banner" style="margin-bottom:20px;display:none">
         <div class="hpb-pulse"></div>
         <div style="flex:1">
-          <div class="hpb-text">🔥 2 prospects chauds détectés</div>
-          <div class="hpb-sub" id="hpb-sub-text">Aucun prospect chaud pour le moment</div>
+          <div class="hpb-text" id="hpb-title-text">Prospects chauds detectes</div>
+          <div class="hpb-sub" id="hpb-sub-text">A contacter en priorite</div>
         </div>
         <button class="hpb-cta" onclick="openEnvoiGroupe()">Créer une campagne →</button>
       </div>
@@ -1727,6 +1727,21 @@ function filterP(btn,f){
 function renderProspects(f){
   const el=document.getElementById('p-list');if(!el)return
   const q=(document.getElementById('search-prospects')?.value||'').toLowerCase()
+
+  // Mettre a jour le banner chauds
+  const chauds = PROSPECTS.filter(p=>p.niveau==='chaud')
+  const banner = document.getElementById('hot-banner')
+  if(banner){
+    if(chauds.length > 0){
+      banner.style.display = 'flex'
+      const title = document.getElementById('hpb-title-text')
+      const sub = document.getElementById('hpb-sub-text')
+      if(title) title.textContent = chauds.length+' prospect'+(chauds.length>1?'s':'')+' chaud'+(chauds.length>1?'s':'')+' detecte'+(chauds.length>1?'s':'')
+      if(sub) sub.textContent = chauds.slice(0,2).map(p=>p.fn+' '+p.ln).join(' · ')
+    } else {
+      banner.style.display = 'none'
+    }
+  }
 
   const RAISON_LABELS={
     prix_eleve:        {label:' Prix trop eleve',          color:'var(--hot)',         bg:'var(--hot-bg)'},
