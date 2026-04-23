@@ -1074,6 +1074,7 @@ button{font-family:var(--sans);cursor:pointer}
           <div class="fld"><label>Date de vente</label><input type="date" id="cf-vente-date"></div>
         </div>
         <div class="fld"><label>Description du bien vendu</label><input id="cf-vente-bien" placeholder="T3 94m² rue Mirabeau, Toulon"></div>
+        <div class="fld"><label>Adresse complète (pour DVF)</label><input id="cf-vente-adresse" placeholder="12 rue Mirabeau, Toulon"></div>
         <div class="f2">
           <div class="fld"><label>Surface (m²)</label><input type="number" id="cf-vente-surface" placeholder="94"></div>
           <div class="fld"><label>Potentiel rachat ?</label>
@@ -3441,7 +3442,7 @@ function addClient(){
     finBail: bail,
     dateNaissance: document.getElementById('cf-ddn').value||null,
     dateAcquisition: dacq,
-    adresse: isAcq ? (document.getElementById('cf-adresse')?.value||'') : '',
+    adresse: isAcq ? (document.getElementById('cf-adresse')?.value||'') : (document.getElementById('cf-vente-adresse')?.value||''),
     // Données vendeur
     ventePrix, venteBien, venteDate, venteRachat,
     lastDate: new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}),
@@ -3458,12 +3459,13 @@ function addClient(){
   renderDashboard()
   toast(fn+' '+ln+' ajouté','ok')
   saveClient(newC)
-  // Lancer DVF en arrière-plan si acquéreur avec adresse
-  if(isAcq && newC.adresse){
+  // Lancer DVF en arrière-plan si adresse renseignée (acquéreur OU vendeur)
+  const adresseDVF = newC.adresse || (isVend ? newC.venteBien : '')
+  if(adresseDVF && newC.surface){
     toast('Calcul DVF en cours…','ok')
-    fetchDVF(newC.id, newC.adresse, newC.surface)
+    fetchDVF(newC.id, adresseDVF, newC.surface)
   }
-  ;['cf-fn','cf-ln','cf-em','cf-tel','cf-city','cf-surface','cf-ddn','cf-dacq','cf-purchase','cf-bail','cf-adresse','cf-notes','cf-vente-prix','cf-vente-bien','cf-vente-date'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=''})
+  ;['cf-fn','cf-ln','cf-em','cf-tel','cf-city','cf-surface','cf-ddn','cf-dacq','cf-purchase','cf-bail','cf-adresse','cf-notes','cf-vente-prix','cf-vente-bien','cf-vente-date','cf-vente-adresse'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=''})
   setCfStatut('acquereur')
 }
 
