@@ -2006,7 +2006,10 @@ function openDetClient(id){
         `:`
         <div class="bloc-meta">
           <span style="font-size:18px;flex-shrink:0"></span>
-          <div>Estimation basee sur <strong>${d.comp} ventes DVF recentes</strong> dans votre secteur  Prix moyen : <strong>${fmtM2(d.avgM2)}</strong><br><span style="font-size:11px;color:var(--muted2)">Ajoutez votre avis de valeur pour une estimation plus precise.</span></div>
+          <div>Estimation basee sur <strong>${d.comp} ventes DVF recentes</strong> dans votre secteur  Prix moyen : <strong>${fmtM2(d.avgM2)}</strong><br>
+            <span style="font-size:11px;color:var(--muted2)">Ajoutez votre avis de valeur pour une estimation plus precise.</span><br>
+            <button onclick="rafraichirDVF('${id}')" style="margin-top:6px;background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer"> Rafraîchir DVF</button>
+          </div>
         </div>
         `}
 
@@ -3331,6 +3334,68 @@ function hexToRgb(hex){
   return r+','+g+','+b
 }
 
+// ── DVF RÉEL ───────────────────────────────────────────────────
+async function fetchDVF(clientId, adresse, surface){
+  const c = CLIENTS[clientId]; if(!c) return
+  try {
+    const res = await fetch('/api/dvf', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adresse, surface })
+    })
+    const data = await res.json()
+
+    if(data.error && !data.dvf){
+      toast('DVF : '+data.error,'er')
+      return
+    }
+
+    if(data.dvf){
+      const d = data.dvf
+      const purchase = c.purchase || 0
+      const gainEur = d.est ? d.est - purchase : 0
+      const gainPct = purchase && d.est ? +(((d.est - purchase) / purchase) * 100).toFixed(1) : 0
+      const opp = gainPct >= 20 ? 'tres fort' : gainPct >= 15 ? 'fort' : gainPct >= 10 ? 'interessant' : 'faible'
+
+      c.dvf = {
+        est: d.est || 0,
+        avgM2: d.avgM2 || 0,
+        comp: d.comp || 0,
+        gainPct, gainEur, opp,
+        conf: d.conf || 'indicative',
+        date: d.date || '',
+        samples: d.samples || []
+      }
+
+      // Mettre à jour ville si géocodée
+      if(data.geo && data.geo.ville && !c.city) c.city = data.geo.ville
+
+      // Recalculer le score
+      const result = calcClientScore(c)
+      c.score = result.total
+      c.scoreReasons = result.reasons
+
+      // Sauvegarder
+      await saveClient(c)
+      renderClients()
+      renderDashboard()
+      toast('DVF calculé — '+d.comp+' ventes comparables trouvées','ok')
+    }
+
+  } catch(err) {
+    console.error('DVF error:', err)
+    toast('DVF indisponible — données manuelles uniquement','er')
+  }
+}
+
+async function rafraichirDVF(clientId){
+  const c = CLIENTS[clientId]; if(!c) return
+  if(!c.adresse){ toast('Ajoutez d\'abord une adresse dans la fiche client','er'); return }
+  toast('Calcul DVF en cours…','ok')
+  await fetchDVF(clientId, c.adresse, c.surface)
+  openDetClient(clientId)
+}
+
 function recalcAllScores(){
   Object.values(CLIENTS).forEach(c => {
     const result = calcClientScore(c)
@@ -3391,9 +3456,13 @@ function addClient(){
   closeModal('modal-add-client')
   renderClients()
   renderDashboard()
-  toast(fn+' '+ln+' ajoute','ok')
+  toast(fn+' '+ln+' ajouté','ok')
   saveClient(newC)
-  // Reset formulaire
+  // Lancer DVF en arrière-plan si acquéreur avec adresse
+  if(isAcq && newC.adresse){
+    toast('Calcul DVF en cours…','ok')
+    fetchDVF(newC.id, newC.adresse, newC.surface)
+  }
   ;['cf-fn','cf-ln','cf-em','cf-tel','cf-city','cf-surface','cf-ddn','cf-dacq','cf-purchase','cf-bail','cf-adresse','cf-notes','cf-vente-prix','cf-vente-bien','cf-vente-date'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=''})
   setCfStatut('acquereur')
 }
