@@ -1232,11 +1232,6 @@ button{font-family:var(--sans);cursor:pointer}
       </div>
       <div class="f2">
         <div class="fld"><label>Date de l'avis</label><input type="date" id="av-date"></div>
-        <div class="fld"><label>Logiciel utilisé</label>
-          <select id="av-source">
-            <option>Perizia</option><option>Evaluat'immo</option><option>MyNotary</option><option>Immovalor</option><option>Autre</option>
-          </select>
-        </div>
       </div>
       <div class="modal-footer">
         <button class="btn-cancel" onclick="closeModal('modal-avis')">Annuler</button>
@@ -1944,7 +1939,7 @@ function openDetClient(id){
   const gainEurRef = prixRef - c.purchase
   const gainPctRef = c.purchase ? +((gainEurRef/c.purchase)*100).toFixed(1) : 0
   const oppRef = gainPctRef>=20?OPP['tres fort']:gainPctRef>=15?OPP['fort']:gainPctRef>=10?OPP['interessant']:OPP['faible']
-  const gainW = Math.min(gainPctRef/30*100,100)
+  const gainW = Math.min(gainPctRef/20*100, 100)
 
   document.getElementById('det-body').innerHTML=`
     ${scoreExplainHTML(c.scoreReasons)}
@@ -2001,13 +1996,11 @@ function openDetClient(id){
         <div style="height:14px"></div>
 
         ${c.avis?`
-        <!-- Info avis de valeur -->
         <div class="bloc-meta">
           <span style="font-size:18px;flex-shrink:0"></span>
           <div>
-            Avis de valeur etabli le <strong>${c.avis.date}</strong> via <strong>${c.avis.source}</strong><br>
-            Fourchette : <strong>${fmt(c.avis.fourchetteBas)}</strong> à <strong>${fmt(c.avis.fourchetteHaut)}</strong><br>
-            <button onclick="toast('Ouverture du PDF','ok')" style="margin-top:6px;background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;color:var(--green-mid);cursor:pointer"> Voir l'avis de valeur PDF</button>
+            Avis etabli le <strong>${c.avis.date}</strong> via <strong>${c.avis.source}</strong><br>
+            Fourchette : <strong>${fmt(c.avis.fourchetteBas)}</strong> à <strong>${fmt(c.avis.fourchetteHaut)}</strong>
           </div>
         </div>
         `:`
@@ -2985,7 +2978,7 @@ function saveAvis(){
     fourchetteHaut:parseInt(document.getElementById('av-haut').value)||Math.round(prix*1.05),
     date: avDateFR,      // affichage
     dateISO: avDateISO,  // sauvegarde Supabase
-    source:document.getElementById('av-source').value||'Manuel',
+    source: 'Manuel',
     pdf:null
   }
   const result = calcClientScore(c)
