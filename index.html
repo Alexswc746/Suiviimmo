@@ -430,8 +430,8 @@ button{font-family:var(--sans);cursor:pointer}
   <aside class="sidebar">
     <div class="sb-sec">Navigation</div>
     <button class="sb-lnk on" id="sl-dash"      onclick="show('dash')">      <span class="sb-ic">◼</span>Dashboard</button>
-    <button class="sb-lnk"    id="sl-clients"   onclick="show('clients')">   <span class="sb-ic">●</span>Clients <span class="sb-badge">6</span></button>
-    <button class="sb-lnk"    id="sl-prospects" onclick="show('prospects')"> <span class="sb-ic">◆</span>Prospects <span id="sb-hot" class="sb-hot-badge">2 chauds</span></button>
+    <button class="sb-lnk"    id="sl-clients"   onclick="show('clients')">   <span class="sb-ic">●</span>Clients <span class="sb-badge" id="sb-clients-count">0</span></button>
+    <button class="sb-lnk"    id="sl-prospects" onclick="show('prospects')"> <span class="sb-ic">◆</span>Prospects <span id="sb-hot" class="sb-hot-badge" style="display:none"></span></button>
     <button class="sb-lnk"    id="sl-campagnes" onclick="show('campagnes')"> <span class="sb-ic">📨</span>Campagnes</button>
     <div class="sb-sep"></div>
     <div class="sb-sec">Compte</div>
@@ -1663,6 +1663,8 @@ function renderClients(){
   if(sub) sub.textContent = nbClients+' client'+(nbClients>1?'s':'')+(nbAvis>0?' · '+nbAvis+' avec estimation active':'')
   const quota = document.getElementById('settings-quota')
   if(quota) quota.textContent = nbClients+' client'+(nbClients>1?'s':'')+' · '+PROSPECTS.length+' prospect'+(PROSPECTS.length>1?'s':'')
+  const sbCount = document.getElementById('sb-clients-count')
+  if(sbCount) sbCount.textContent = nbClients
 
   // Tri
   data.sort((a,b)=>{
@@ -1728,9 +1730,10 @@ function renderProspects(f){
   const el=document.getElementById('p-list');if(!el)return
   const q=(document.getElementById('search-prospects')?.value||'').toLowerCase()
 
-  // Mettre a jour le banner chauds
+  // Mettre a jour le banner chauds et le badge sidebar
   const chauds = PROSPECTS.filter(p=>p.niveau==='chaud')
   const banner = document.getElementById('hot-banner')
+  const sbHot = document.getElementById('sb-hot')
   if(banner){
     if(chauds.length > 0){
       banner.style.display = 'flex'
@@ -1740,6 +1743,14 @@ function renderProspects(f){
       if(sub) sub.textContent = chauds.slice(0,2).map(p=>p.fn+' '+p.ln).join(' · ')
     } else {
       banner.style.display = 'none'
+    }
+  }
+  if(sbHot){
+    if(chauds.length > 0){
+      sbHot.style.display = 'inline'
+      sbHot.textContent = chauds.length+' chaud'+(chauds.length>1?'s':'')
+    } else {
+      sbHot.style.display = 'none'
     }
   }
 
