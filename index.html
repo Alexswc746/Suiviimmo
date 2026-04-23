@@ -1378,8 +1378,10 @@ async function afterLogin(user){
   if(appWrap) appWrap.style.display = 'flex'
 
   renderClients()
-  renderProspects()
+  renderProspects('')  // '' force la mise à jour du badge sidebar
   renderCampagnes()
+  recalcAllScores()
+  renderClients()      // re-render après recalc pour afficher les bons scores
   renderDashboard()
   renderAnnivBlock()
 }
