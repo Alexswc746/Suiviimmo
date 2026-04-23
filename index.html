@@ -1648,131 +1648,10 @@ async function checkSession(){
 }
 
 //  DONNEES CLIENTS 
-const CLIENTS = {
-  renard:{id:'renard',fn:'Michel',ln:'Renard',init:'MR',avCls:'av-hot',city:'Toulon Mourillon',surface:94,year:2016,purchase:285000,score:92,phone:'06 12 34 56 78',email:'m.renard@mail.fr',
-    dateNaissance:'1974-03-15', dateAcquisition:'2016-05-20',
-    lastDate:'15 jan. 2025', lastNote:'Evoque demenagement pour les enfants  attend de voir pour l\'ecole.', projet:'reflechit', projetNote:'Veut vendre si bon prix, pas presse.',
-    notes:'Evoque un demenagement pour les enfants.',
-    scoreReasons:['9 ans de detention','Residence principale','Pas contacte 3 mois','Avis de valeur +32%'],
-    avis:{prix:375000,fourchetteBas:360000,fourchetteHaut:390000,date:'10 avr. 2025',source:'Perizia',pdf:'avis_renard_2025.pdf'},
-    dvf:{est:387000,avgM2:4117,comp:14,gainPct:35.8,gainEur:102000,opp:'tres fort',conf:'elevee',date:'15 avr.',
-      samples:[{d:'Jan 2025',s:88,p:365000,m:4148},{d:'Dec 2024',s:97,p:398000,m:4103},{d:'Oct 2024',s:91,p:371000,m:4077}]},
-    journal:[
-      {id:'j1',type:'rdv',date:'16 avr. 2025',text:'RDV estimation a son domicile. Appartement en excellent etat, cuisine refaite en 2022. Confirme avis de valeur 375 000. Il est interesse mais veut attendre que sa fille finisse l\'annee scolaire. Accord de principe sur le mandat.',rappel:'2025-05-15',rappelFait:false},
-      {id:'j2',type:'email',date:'10 avr. 2025',text:'Email avec recap du marche Mourillon. A ouvert l\'email 2 fois le meme jour. Bon signal.',rappel:null,rappelFait:false},
-      {id:'j3',type:'appel',date:'15 jan. 2025',text:'Evoque un demenagement possible pour les enfants. Dit on y pense serieusement. Me rappeler en mars apres les vacances.',rappel:'2025-03-01',rappelFait:true},
-      {id:'j4',type:'visite',date:'12 mars 2024',text:'Premiere visite du bien. T3 94m2, 4eme etage vue degagee. Bon etat general. Cuisine refaite. Salle de bain a moderniser (~8k). Parking inclus. Client pas encore pret a vendre.',rappel:'2024-06-15',rappelFait:true},
-    ]},
-  moreau:{id:'moreau',fn:'Anne-Sophie',ln:'Moreau',init:'AS',avCls:'av-warm',city:'La Seyne',surface:48,year:2017,purchase:142000,score:88,phone:'06 98 76 54 32',email:'as.moreau@mail.fr',
-    dateNaissance:'1988-07-22', dateAcquisition:'2017-09-12',
-    lastDate:'3 mars 2025', lastNote:'Fin de bail en juin  interessee par simulation de revente.', projet:'confirme', projetNote:'Veut vendre avant l\'ete pour se reloger.', finBail:'juin 2025',
-    notes:'Fin de bail. Interessee par la simulation.',
-    scoreReasons:['A ouvert email  +10pts','A clique simulation  +40pts','Fin de bail annoncee','8 ans de detention'],
-    avis:{prix:168000,fourchetteBas:162000,fourchetteHaut:175000,date:'12 avr. 2025',source:'Evaluat\'immo',pdf:'avis_moreau_2025.pdf'},
-    dvf:{est:173000,avgM2:3604,comp:9,gainPct:21.8,gainEur:31000,opp:'fort',conf:'bonne',date:'15 avr.',
-      samples:[{d:'Fev 2025',s:52,p:190000,m:3654},{d:'Jan 2025',s:45,p:161000,m:3578},{d:'Nov 2024',s:50,p:178000,m:3560}]},
-    journal:[
-      {id:'j1',type:'appel',date:'3 mars 2025',text:'Interessee par simulation de revente. Fin de bail juin — motivation reelle de vendre. RDV estimation a planifier.',rappel:'2025-04-01',rappelFait:true},
-      {id:'j2',type:'email',date:'15 fev. 2025',text:'Envoi simulation de plus-value. A ouvert et clique sur le lien. Tres bon signal.',rappel:null,rappelFait:false},
-    ]},
-  dumont:{id:'dumont',fn:'Pierre',ln:'Dumont',init:'PD',avCls:'av-hot',city:'Mourillon',surface:112,year:2015,purchase:310000,score:85,phone:'06 11 22 33 44',email:'p.dumont@mail.fr',
-    dateNaissance:'1969-05-08', dateAcquisition:'2015-04-30',
-    lastDate:'16 avr. 2025', lastNote:'RDV estimation confirme cet apres-midi à 14h30.', projet:'confirme', projetNote:'Veut vendre pour acheter plus grand en peripherie.',
-    notes:'RDV estimation cet apres-midi.',
-    scoreReasons:['10 ans de detention','Avis de valeur +35%','RDV confirme aujourd\'hui'],
-    avis:null,
-    dvf:{est:428000,avgM2:3821,comp:11,gainPct:38.1,gainEur:118000,opp:'tres fort',conf:'elevee',date:'14 avr.',
-      samples:[{d:'Mars 2025',s:105,p:404000,m:3848},{d:'Jan 2025',s:118,p:448000,m:3797}]},
-    journal:[
-      {id:'j1',type:'rdv',date:'16 avr. 2025',text:'RDV estimation confirme a 14h30. Preparer dossier comparables Mourillon.',rappel:null,rappelFait:false},
-      {id:'j2',type:'appel',date:'2 avr. 2025',text:'Appel de prise de contact. Interesse par une estimation. RDV fixe pour le 16 avril.',rappel:null,rappelFait:false},
-    ]},
-  vidal:{id:'vidal',fn:'Robert',ln:'Vidal',init:'RV',avCls:'av-cool',city:'Six-Fours',surface:78,year:2019,purchase:235000,score:72,phone:'06 55 44 33 22',email:'r.vidal@mail.fr',
-    dateNaissance:'1980-04-22', dateAcquisition:'2019-07-15',
-    lastDate:'2 avr. 2025', lastNote:'Suit les prix  pas encore decide.', projet:'reflechit', projetNote:'Envisage de vendre dans 1-2 ans.',
-    notes:'Suit les prix.',
-    scoreReasons:['DVF +14%','6 ans de detention','Contact il y a 2 semaines'],
-    avis:null,
-    dvf:{est:268000,avgM2:3436,comp:7,gainPct:14.0,gainEur:33000,opp:'interessant',conf:'bonne',date:'15 avr.',
-      samples:[{d:'Fev 2025',s:74,p:254000,m:3432},{d:'Dec 2024',s:82,p:282000,m:3439}]},
-    journal:[
-      {id:'j1',type:'appel',date:'2 avr. 2025',text:'Suit les prix sur les portails. Pas encore decide. Envisage de vendre dans 1-2 ans. Rappeler en fin d\'annee.',rappel:'2025-10-01',rappelFait:false},
-    ]},
-  aubert:{id:'aubert',fn:'M.-Christine',ln:'Aubert',init:'MA',avCls:'av-cool',city:'Bandol',surface:62,year:2018,purchase:168000,score:65,phone:'06 77 88 99 00',email:'mc.aubert@mail.fr',
-    dateNaissance:'1976-10-03', dateAcquisition:'2018-03-22',
-    lastDate:'16 mars 2025', lastNote:'Envisage de reinvestir dans quelque chose de plus grand.', projet:'reflechit', projetNote:'Attend d\'avoir plus de visibilite sur les prix.',
-    notes:'Envisage de reinvestir.',
-    scoreReasons:['DVF +16,1%','7 ans de detention'],
-    avis:null,
-    dvf:{est:195000,avgM2:3145,comp:5,gainPct:16.1,gainEur:27000,opp:'fort',conf:'indicative',date:'12 avr.',
-      samples:[{d:'Janv 2025',s:58,p:184000,m:3172},{d:'Nov 2024',s:65,p:203000,m:3123}]},
-    journal:[
-      {id:'j1',type:'note',date:'16 mars 2025',text:'Envisage de reinvestir dans plus grand. Pas de calendrier precis. A recontacter dans 3 mois.',rappel:'2025-06-16',rappelFait:false},
-    ]},
-  perrin:{id:'perrin',fn:'Jean-Louis',ln:'Perrin',init:'JP',avCls:'av-cool',city:'Hyeres',surface:55,year:2020,purchase:198000,score:48,phone:'06 33 44 55 66',email:'jl.perrin@mail.fr',
-    dateNaissance:'1983-04-18', dateAcquisition:'2020-06-10',
-    lastDate:'18 dec. 2024', lastNote:'Pas de projet defini  à recontacter dans 6 mois.', projet:'aucun', projetNote:'',
-    notes:'Pas de projet defini.',
-    scoreReasons:['DVF +10,1%','5 ans de detention','4 mois sans contact'],
-    avis:null,
-    dvf:{est:218000,avgM2:3960,comp:4,gainPct:10.1,gainEur:20000,opp:'interessant',conf:'indicative',date:'10 avr.',
-      samples:[{d:'Mars 2025',s:52,p:200000,m:3846},{d:'Janv 2025',s:58,p:232000,m:4000}]},
-    journal:[
-      {id:'j1',type:'appel',date:'18 dec. 2024',text:'Pas de projet defini pour l\'instant. A recontacter dans 6 mois.',rappel:'2025-06-18',rappelFait:false},
-    ]},
-}
+const CLIENTS = {}
 
 //  DONNEES PROSPECTS 
-let PROSPECTS = [
-  {id:'bernard',fn:'Lucas',ln:'Bernard',init:'LB',avCls:'av-hot',email:'l.bernard@mail.fr',phone:'06 44 55 66 77',
-   visite:'Appartement T3, rue Mirabeau  Toulon',dateVisite:'8 avr. 2025',projet:'achat',
-   budget:'280 000  320 000 ', secteur:'Toulon centre',
-   statut:'actif',niveau:'chaud',score:88,derniere:'A clique sur email consentement',
-   lastDate:'12 avr. 2025', lastNote:'Tres interesse par le T3 Mirabeau. Rappeler cette semaine.',
-   raisonNonAchat:null, raisonDetail:null, emailCommercial:true,
-   notes:'Budget 280-320k. Cherche T3/T4 Toulon centre. Vendeur potentiel  a un T2 à La Seyne.',
-   scoreReasons:['A clique sur email  +40pts','A visite 1 bien  +20pts','Projet clair et qualifie','Vendeur potentiel aussi']},
-  {id:'garnier',fn:'Julie',ln:'Garnier',init:'JG',avCls:'av-warm',email:'j.garnier@mail.fr',phone:'06 11 22 33 44',
-   visite:'Villa T4, avenue Victor Hugo  Ollioules',dateVisite:'2 avr. 2025',projet:'achat',
-   budget:'380 000  420 000 ', secteur:'Ollioules / La Valette',
-   statut:'invite',niveau:'chaud',score:74,derniere:'A ouvert email 3 (pas encore clique)',
-   lastDate:'5 avr. 2025', lastNote:'Hesite sur le secteur. Proposer alternatives La Valette.',
-   raisonNonAchat:'bien_ne_correspond', raisonDetail:'Mauvais secteur / environnement', emailCommercial:true,
-   notes:'Cherche maison avec jardin, secteur Ollioules / La Valette. Budget 380-420k.',
-   scoreReasons:['A ouvert email 3  +30pts','Engagement fort sans clic','Visite recente  +20pts','Budget confirme']},
-  {id:'fabre',fn:'Thomas',ln:'Fabre',init:'TF',avCls:'av-cool',email:'t.fabre@mail.fr',phone:'06 77 88 99 00',
-   visite:'Appartement T2, bd de la Republique  Toulon',dateVisite:'25 mars 2025',projet:'vente-achat',
-   budget:'220 000  260 000 ', secteur:'Toulon',
-   statut:'actif',niveau:'tiede',score:62,derniere:'Email consentement envoye  ouvert 1',
-   lastDate:'28 mars 2025', lastNote:'Projet de mutation confirme. À recontacter fin avril.',
-   raisonNonAchat:null, raisonDetail:null, emailCommercial:true,
-   notes:'Projet de mutation pro. Veut vendre son T2 pour acheter T3. À transformer en double mandat.',
-   scoreReasons:['A ouvert email  +10pts','Projet double mandat  fort potentiel','Visite il y a 3 semaines']},
-  {id:'martin',fn:'Sandrine',ln:'Martin',init:'SM',avCls:'av-blue',email:'s.martin@mail.fr',phone:'06 55 44 33 22',
-   visite:'Appartement T3, quartier Haute-Ville  Toulon',dateVisite:'18 mars 2025',projet:'achat',
-   budget:'', secteur:'Toulon',
-   statut:'invite',niveau:'tiede',score:45,derniere:'Email consentement envoye  pas ouvert',
-   lastDate:'20 mars 2025', lastNote:'Premier contact. Besoin de qualifier le budget.',
-   raisonNonAchat:null, raisonDetail:null, emailCommercial:null,
-   notes:'Premiere visite. Cherche T3 avec terrasse. Pas encore de budget precis mentionne.',
-   scoreReasons:['Email non ouvert','Visite il y a 4 semaines','Projet à qualifier']},
-  {id:'leroy',fn:'Marc',ln:'Leroy',init:'ML',avCls:'av-gray',email:'m.leroy@mail.fr',phone:'',
-   visite:'Maison T5, Les Sablettes  La Seyne',dateVisite:'5 mars 2025',projet:'inconnu',
-   budget:'', secteur:'La Seyne',
-   statut:'invite',niveau:'froid',score:22,derniere:'Aucune activite depuis la visite',
-   lastDate:'8 mars 2025', lastNote:'Projet flou. Derniere tentative de relance prevue.',
-   raisonNonAchat:'projet_pause', raisonDetail:null, emailCommercial:true,
-   notes:'A visite par curiosite. Projet flou. À relancer legerement.',
-   scoreReasons:['Aucune activite','Visite il y a plus de 6 semaines','Projet non defini']},
-  {id:'dupont',fn:'Claire',ln:'Dupont',init:'CD',avCls:'av-gray',email:'c.dupont@mail.fr',phone:'06 99 88 77 66',
-   visite:'Appartement T2, rue de la Republique  Toulon',dateVisite:'15 fev. 2025',projet:'achat',
-   budget:'180 000  220 000 ', secteur:'Toulon / Hyeres',
-   statut:'inactif',niveau:'froid',score:15,derniere:'3 relances sans reponse',
-   lastDate:'10 mars 2025', lastNote:'3 relances sans reponse. Archiver si pas de retour.',
-   raisonNonAchat:'trouve_ailleurs', raisonDetail:null, emailCommercial:true,
-   notes:'3 relances sans reponse. À archiver ou derniere tentative.',
-   scoreReasons:['Aucune reponse  3','Visite ancienne (2 mois)','Dernier recours avant archivage']},
-]
+let PROSPECTS = []
 
 //  CONFIGS 
 const OPP = {
@@ -3014,20 +2893,7 @@ function addClient(){
 }
 
 //  CAMPAGNES HISTORIQUE 
-const CAMP_HISTORIQUE = [
-  {id:'c001', date:'16 avr. 2025', heure:'09h15', cible:' Prospects chauds', type:' Prise de contact / Relance',
-   envois:3, ouvertures:3, clics:2, statut:'envoye',
-   destinataires:['Lucas Bernard','Julie Garnier','Thomas Fabre']},
-  {id:'c002', date:'14 avr. 2025', heure:'10h30', cible:' Clients tiedes', type:' Point marche',
-   envois:8, ouvertures:5, clics:1, statut:'envoye',
-   destinataires:['Robert Vidal','M.-Christine Aubert','Jean-Louis Perrin']},
-  {id:'c003', date:'10 avr. 2025', heure:'14h00', cible:' Inactifs', type:' Offre parrainage',
-   envois:12, ouvertures:7, clics:3, statut:'envoye',
-   destinataires:['Claire Dupont','Marc Leroy']},
-  {id:'c004', date:'22 avr. 2025', heure:'09h00', cible:' Clients chauds', type:' Nouveau bien disponible',
-   envois:15, ouvertures:null, clics:null, statut:'planifie',
-   destinataires:['Michel Renard','Anne-Sophie Moreau','Pierre Dumont']},
-]
+const CAMP_HISTORIQUE = []
 
 function renderCampagnes(){
   const el=document.getElementById('camp-historique');if(!el)return
