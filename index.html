@@ -401,7 +401,7 @@ button{font-family:var(--sans);cursor:pointer}
 </div>
 
 <!-- NAV -->
-<nav id="nav">
+<nav id="nav" style="display:none">
   <div class="logo">
     <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
       <circle cx="20" cy="20" r="17" stroke="#0E4D2B" stroke-width="3"/>
@@ -424,7 +424,7 @@ button{font-family:var(--sans);cursor:pointer}
 </nav>
 <div id="toast"></div>
 
-<div class="app-wrap">
+<div class="app-wrap" style="display:none">
   <aside class="sidebar">
     <div class="sb-sec">Navigation</div>
     <button class="sb-lnk on" id="sl-dash"      onclick="show('dash')">      <span class="sb-ic">◼</span>Dashboard</button>
@@ -1370,7 +1370,7 @@ async function afterLogin(user){
   currentUser = user
 
   // Recuperer l'id utilisateur dans notre table
-  const { data: profil } = await supabase
+  const { data: profil } = await sb
     .from('utilisateurs')
     .select('id, prenom, nom, reseau, secteur')
     .eq('auth_id', user.id)
@@ -1390,8 +1390,13 @@ async function afterLogin(user){
 
   // Masquer login, afficher app
   document.getElementById('login-page').style.display = 'none'
-  document.getElementById('onboarding').style.display = 'none'
-  document.getElementById('app').style.display = 'flex'
+  const onboarding = document.getElementById('onboarding')
+  if(onboarding) onboarding.style.display = 'none'
+  // Afficher la nav et le contenu
+  const nav = document.getElementById('nav')
+  if(nav) nav.style.display = 'flex'
+  const appWrap = document.querySelector('.app-wrap')
+  if(appWrap) appWrap.style.display = 'flex'
 
   renderClients()
   renderProspects()
@@ -1412,7 +1417,7 @@ async function loadAllData(){
   if(!currentUserId) return
 
   // Clients
-  const { data: clientsData } = await supabase
+  const { data: clientsData } = await sb
     .from('clients')
     .select('*')
     .eq('user_id', currentUserId)
@@ -1426,7 +1431,7 @@ async function loadAllData(){
   }
 
   // Prospects
-  const { data: prospectsData } = await supabase
+  const { data: prospectsData } = await sb
     .from('prospects')
     .select('*')
     .eq('user_id', currentUserId)
@@ -1438,7 +1443,7 @@ async function loadAllData(){
   }
 
   // Journal clients
-  const { data: journalData } = await supabase
+  const { data: journalData } = await sb
     .from('journal_client')
     .select('*')
     .eq('user_id', currentUserId)
@@ -1455,7 +1460,7 @@ async function loadAllData(){
   }
 
   // Campagnes
-  const { data: campData } = await supabase
+  const { data: campData } = await sb
     .from('campagnes')
     .select('*')
     .eq('user_id', currentUserId)
