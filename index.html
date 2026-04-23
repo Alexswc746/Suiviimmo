@@ -818,39 +818,101 @@ button{font-family:var(--sans);cursor:pointer}
 </div>
 
 <!-- MODAL OFFRE -->
+<!-- MODAL PROPOSER UNE OFFRE -->
 <div id="modal-offre" class="modal-ov" onclick="if(event.target===this)closeModal('modal-offre')">
-  <div class="modal-box">
+  <div class="modal-box" style="max-width:560px">
     <div class="modal-top"><div class="modal-title">Proposer une offre</div><div class="modal-sub" id="mo-name"></div></div>
     <div class="modal-body">
-      <div style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.65">Choisissez ce que vous souhaitez proposer à ce prospect pour créer une raison de se recontacter.</div>
-      <div class="offre-grid">
-        <div class="offre-item"><div class="offre-icon">🏠</div><div><h4>Diagnostics offerts</h4><p>DPE, électricité, gaz — pris en charge pour accélérer la mise en vente.</p></div></div>
-        <div class="offre-item"><div class="offre-icon">📸</div><div><h4>Photos professionnelles</h4><p>Reportage photo haut de gamme inclus dans le mandat.</p></div></div>
-        <div class="offre-item"><div class="offre-icon">📦</div><div><h4>Pack marketing complet</h4><p>Annonce, réseaux, portails premium — tout inclus.</p></div></div>
-        <div class="offre-item"><div class="offre-icon">🚁</div><div><h4>Visite virtuelle / drone</h4><p>Mise en valeur immersive du bien pour attirer plus d'acheteurs.</p></div></div>
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px">Choisissez l'offre à proposer</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+        <div class="offre-item" onclick="selectOffre('diagnostics')" id="offre-diagnostics" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:2px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all .15s">
+          <span style="font-size:20px">🏠</span>
+          <div style="flex:1"><div style="font-size:13px;font-weight:600">Diagnostics offerts</div><div style="font-size:11px;color:var(--muted)">DPE, electricite, gaz — pris en charge pour accelerer la mise en vente</div></div>
+        </div>
+        <div class="offre-item" onclick="selectOffre('photos')" id="offre-photos" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:2px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all .15s">
+          <span style="font-size:20px">📸</span>
+          <div style="flex:1"><div style="font-size:13px;font-weight:600">Photos professionnelles</div><div style="font-size:11px;color:var(--muted)">Reportage photo haut de gamme inclus dans le mandat</div></div>
+        </div>
+        <div class="offre-item" onclick="selectOffre('pack')" id="offre-pack" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:2px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all .15s">
+          <span style="font-size:20px">📦</span>
+          <div style="flex:1"><div style="font-size:13px;font-weight:600">Pack marketing complet</div><div style="font-size:11px;color:var(--muted)">Annonce, reseaux, portails premium — tout inclus</div></div>
+        </div>
+        <div class="offre-item" onclick="selectOffre('visite360')" id="offre-visite360" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:2px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all .15s">
+          <span style="font-size:20px">🚁</span>
+          <div style="flex:1"><div style="font-size:13px;font-weight:600">Visite virtuelle / drone</div><div style="font-size:11px;color:var(--muted)">Mise en valeur immersive pour attirer plus d'acheteurs</div></div>
+        </div>
       </div>
-      <div class="modal-footer"><button class="btn-cancel" onclick="closeModal('modal-offre')">Fermer</button><button class="btn-ok" onclick="toast('Offre préparée — à envoyer par email ✓','ok');closeModal('modal-offre')">Préparer le message →</button></div>
+      <div id="offre-msg-wrap" style="display:none">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px">Message personnalisable</div>
+        <textarea id="offre-msg-text" rows="6" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;font-family:var(--sans);resize:vertical;outline:none;line-height:1.6"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal('modal-offre')">Annuler</button>
+        <button class="btn-ok" id="offre-send-btn" style="display:none" onclick="envoyerOffre()">Envoyer par email →</button>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- MODAL NEGOCIATION -->
+<!-- MODAL PROPOSER UNE CONDITION -->
 <div id="modal-nego" class="modal-ov" onclick="if(event.target===this)closeModal('modal-nego')">
-  <div class="modal-box">
+  <div class="modal-box" style="max-width:560px">
     <div class="modal-top"><div class="modal-title">Proposer une condition</div><div class="modal-sub" id="mn-name"></div></div>
     <div class="modal-body">
-      <div style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.65">Une offre limitée dans le temps crée un sentiment d'urgence sain et relance la décision.</div>
-      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
-        <div style="background:var(--cream);border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer" onclick="toast('Condition sélectionnée ✓','ok');closeModal('modal-nego')">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px">Choisissez la condition</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+        <div onclick="selectNego('honoraires')" id="nego-honoraires" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:2px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all .15s">
           <span style="font-size:20px">💰</span>
-          <div><div style="font-size:14px;font-weight:600">Honoraires réduits</div><div style="font-size:12px;color:var(--muted)">Offre valable jusqu'à fin du mois — à mentionner à l'oral</div></div>
+          <div style="flex:1"><div style="font-size:13px;font-weight:600">Honoraires reduits</div><div style="font-size:11px;color:var(--muted)">Offre valable jusqu'a fin du mois</div></div>
         </div>
-        <div style="background:var(--cream);border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer" onclick="toast('Condition sélectionnée ✓','ok');closeModal('modal-nego')">
+        <div onclick="selectNego('urgence')" id="nego-urgence" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:2px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all .15s">
           <span style="font-size:20px">⏰</span>
-          <div><div style="font-size:14px;font-weight:600">Offre limitée dans le temps</div><div style="font-size:12px;color:var(--muted)">Proposition valable 7 jours — crée l'urgence sans pression</div></div>
+          <div style="flex:1"><div style="font-size:13px;font-weight:600">Offre limitee dans le temps</div><div style="font-size:11px;color:var(--muted)">Proposition valable 7 jours — cree l'urgence sans pression</div></div>
+        </div>
+        <div onclick="selectNego('exclusivite')" id="nego-exclusivite" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:2px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all .15s">
+          <span style="font-size:20px">🔒</span>
+          <div style="flex:1"><div style="font-size:13px;font-weight:600">Mandat exclusif avantageux</div><div style="font-size:11px;color:var(--muted)">Meilleure visibilite et accompagnement prioritaire</div></div>
+        </div>
+        <div onclick="selectNego('estimation')" id="nego-estimation" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:2px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all .15s">
+          <span style="font-size:20px">📊</span>
+          <div style="flex:1"><div style="font-size:13px;font-weight:600">Estimation gratuite et sans engagement</div><div style="font-size:11px;color:var(--muted)">Valoriser le bien avant de decider</div></div>
         </div>
       </div>
-      <div class="modal-footer"><button class="btn-cancel" onclick="closeModal('modal-nego')">Annuler</button></div>
+      <div id="nego-msg-wrap" style="display:none">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px">Message personnalisable</div>
+        <textarea id="nego-msg-text" rows="6" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;font-family:var(--sans);resize:vertical;outline:none;line-height:1.6"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal('modal-nego')">Annuler</button>
+        <button class="btn-ok" id="nego-send-btn" style="display:none" onclick="envoyerNego()">Envoyer par email →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PROSPECT A ACHETE -->
+<div id="modal-achat-prospect" class="modal-ov" onclick="if(event.target===this)closeModal('modal-achat-prospect')">
+  <div class="modal-box" style="max-width:500px">
+    <div class="modal-top"><div class="modal-title">Ce prospect a acheté ?</div><div class="modal-sub" id="map-name"></div></div>
+    <div class="modal-body">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.65">Que s'est-il passé avec ce prospect ?</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+        <div onclick="basculerProspectAcquereur()" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:2px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all .15s;background:var(--mint-pale);border-color:var(--mint-light)" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--mint-light)'">
+          <span style="font-size:22px">🏠</span>
+          <div><div style="font-size:13px;font-weight:600;color:var(--green)">Il a acheté avec moi — le passer en client acquéreur</div><div style="font-size:11px;color:var(--muted)">Il sera ajouté dans l'onglet Clients avec son profil acquéreur</div></div>
+        </div>
+        <div onclick="marquerInteretBien()" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:2px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all .15s" onmouseover="this.style.background='var(--warm)'" onmouseout="this.style.background='#fff'">
+          <span style="font-size:22px">👀</span>
+          <div><div style="font-size:13px;font-weight:600">Toujours intéressé par un bien</div><div style="font-size:11px;color:var(--muted)">Il n'a pas encore acheté mais son projet continue</div></div>
+        </div>
+        <div onclick="marquerAchatAilleurs()" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:2px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all .15s" onmouseover="this.style.background='var(--warm)'" onmouseout="this.style.background='#fff'">
+          <span style="font-size:22px">🚪</span>
+          <div><div style="font-size:13px;font-weight:600">Il a acheté ailleurs</div><div style="font-size:11px;color:var(--muted)">Garder le contact — il peut revendre ou recommander</div></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal('modal-achat-prospect')">Annuler</button>
+      </div>
     </div>
   </div>
 </div>
@@ -948,8 +1010,26 @@ button{font-family:var(--sans);cursor:pointer}
 <!-- MODAL AJOUT CLIENT -->
 <div id="modal-add-client" class="modal-ov" onclick="if(event.target===this)closeModal('modal-add-client')">
   <div class="modal-box">
-    <div class="modal-top"><div class="modal-title">Nouveau client</div><div class="modal-sub">Quelqu'un à qui tu as vendu ou acheté</div></div>
+    <div class="modal-top"><div class="modal-title">Nouveau client</div><div class="modal-sub" id="cf-sub">Quelqu'un avec qui vous avez travaillé</div></div>
     <div class="modal-body">
+
+      <!-- Étape 1 : statut -->
+      <div style="margin-bottom:16px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px">Quel est le profil de ce client ?</div>
+        <div style="display:flex;gap:8px">
+          <button id="cf-st-acq" onclick="setCfStatut('acquereur')" style="flex:1;padding:10px;border:2px solid var(--border);border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;background:#fff;transition:all .15s">
+            🏠 Acquéreur<br><span style="font-size:11px;color:var(--muted);font-weight:400">Il a acheté avec vous</span>
+          </button>
+          <button id="cf-st-vend" onclick="setCfStatut('vendeur')" style="flex:1;padding:10px;border:2px solid var(--border);border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;background:#fff;transition:all .15s">
+            💶 Vendeur<br><span style="font-size:11px;color:var(--muted);font-weight:400">Il a vendu avec vous</span>
+          </button>
+          <button id="cf-st-deux" onclick="setCfStatut('les_deux')" style="flex:1;padding:10px;border:2px solid var(--border);border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;background:#fff;transition:all .15s">
+            🔄 Les deux<br><span style="font-size:11px;color:var(--muted);font-weight:400">Vente + achat</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Identité (toujours visible) -->
       <div class="f2">
         <div class="fld"><label>Prénom *</label><input id="cf-fn" placeholder="Michel"></div>
         <div class="fld"><label>Nom *</label><input id="cf-ln" placeholder="Renard"></div>
@@ -959,34 +1039,58 @@ button{font-family:var(--sans);cursor:pointer}
         <div class="fld"><label>Téléphone</label><input id="cf-tel" placeholder="06 XX XX XX XX"></div>
       </div>
       <div class="f2">
-        <div class="fld"><label>Ville</label><input id="cf-city" placeholder="Toulon"></div>
-        <div class="fld"><label>Surface (m²)</label><input type="number" id="cf-surface" placeholder="94"></div>
+        <div class="fld"><label>Date de naissance</label><input type="date" id="cf-ddn"></div>
+        <div class="fld"><label>Ville du bien</label><input id="cf-city" placeholder="Toulon"></div>
       </div>
-      <div class="f2">
-        <div class="fld"><label>Année d'achat</label><input type="number" id="cf-year" placeholder="2018"></div>
-        <div class="fld"><label>Type de bien</label>
-          <select id="cf-type">
-            <option value="primary">Résidence principale</option>
-            <option value="investment">Investissement locatif</option>
-            <option value="secondary">Résidence secondaire</option>
-          </select>
+
+      <!-- Champs acquéreur -->
+      <div id="cf-acq-fields" style="display:none">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--green-mid);margin:12px 0 10px;padding-top:12px;border-top:1px solid var(--border)">Infos du bien acheté</div>
+        <div class="f2">
+          <div class="fld"><label>Surface (m²)</label><input type="number" id="cf-surface" placeholder="94"></div>
+          <div class="fld"><label>Type de bien</label>
+            <select id="cf-type">
+              <option value="primary">Résidence principale</option>
+              <option value="investment">Investissement locatif</option>
+              <option value="secondary">Résidence secondaire</option>
+            </select>
+          </div>
+        </div>
+        <div class="f2">
+          <div class="fld"><label>Date d'acquisition</label><input type="date" id="cf-dacq"></div>
+          <div class="fld"><label>Prix d'achat (€)</label><input type="number" id="cf-purchase" placeholder="280000"></div>
+        </div>
+        <div class="f2">
+          <div class="fld"><label>Adresse complète (pour DVF)</label><input id="cf-adresse" placeholder="12 rue Victor Hugo, Toulon"></div>
+          <div class="fld"><label>Fin de bail (si locatif)</label><input id="cf-bail" placeholder="juin 2026"></div>
         </div>
       </div>
-      <div class="f2">
-        <div class="fld"><label>Prix d'achat (€)</label><input type="number" id="cf-purchase" placeholder="280000"></div>
-        <div class="fld"><label>Valeur estimée (€)</label><input type="number" id="cf-value" placeholder="350000"></div>
+
+      <!-- Champs vendeur -->
+      <div id="cf-vend-fields" style="display:none">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:12px 0 10px;padding-top:12px;border-top:1px solid var(--border)">Infos de la vente réalisée</div>
+        <div class="f2">
+          <div class="fld"><label>Prix de vente réalisé (€)</label><input type="number" id="cf-vente-prix" placeholder="320000"></div>
+          <div class="fld"><label>Date de vente</label><input type="date" id="cf-vente-date"></div>
+        </div>
+        <div class="fld"><label>Description du bien vendu</label><input id="cf-vente-bien" placeholder="T3 94m² rue Mirabeau, Toulon"></div>
+        <div class="f2">
+          <div class="fld"><label>Surface (m²)</label><input type="number" id="cf-vente-surface" placeholder="94"></div>
+          <div class="fld"><label>Potentiel rachat ?</label>
+            <select id="cf-vente-rachat">
+              <option value="">Non renseigné</option>
+              <option value="oui">Oui — projet en cours</option>
+              <option value="peut-etre">Peut-être dans 1-2 ans</option>
+              <option value="non">Non</option>
+            </select>
+          </div>
+        </div>
       </div>
-      <div class="f2">
-        <div class="fld"><label>Fin de bail locataire</label><input id="cf-bail" placeholder="Ex : juin 2026 (si investissement)"></div>
-        <div class="fld"></div>
-      </div>
-      <div class="f2">
-        <div class="fld"><label>Date de naissance</label><input type="date" id="cf-ddn" placeholder="jj/mm/aaaa"></div>
-        <div class="fld"><label>Date d'acquisition exacte</label><input type="date" id="cf-dacq" placeholder="jj/mm/aaaa"></div>
-      </div>
-      <div class="fld"><label>Notes</label><textarea id="cf-notes" rows="2" placeholder="Informations utiles…" style="resize:vertical"></textarea></div>
-      <div style="background:var(--mint-pale);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--green-mid);margin-bottom:4px">
-        📊 L'estimation DVF sera calculée automatiquement après l'ajout.
+
+      <div class="fld" style="margin-top:12px"><label>Notes</label><textarea id="cf-notes" rows="2" placeholder="Informations utiles…" style="resize:vertical"></textarea></div>
+
+      <div style="background:var(--mint-pale);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--green-mid);margin-bottom:4px" id="cf-dvf-info" style="display:none">
+        📊 Le DVF sera calculé automatiquement à partir de l'adresse.
       </div>
       <div class="form-actions">
         <button class="btn-cancel" onclick="closeModal('modal-add-client')">Annuler</button>
@@ -2002,7 +2106,7 @@ function openDetProspect(id){
 
         <!-- ACTIONS PRINCIPALES -->
         <div class="bloc-actions">
-          <button class="ba ba-pri" onclick="toast(' Appel en cours','ok')"> Appeler ce prospect</button>
+          <button class="ba ba-pri" onclick="toast('Appel en cours','ok')"> Appeler ce prospect</button>
           <button class="ba ba-sec" onclick="openMsg('prospect','${id}')"> Relancer le projet</button>
           <button class="ba ba-orange" onclick="openOffre('${id}')"> Proposer une offre</button>
           <button class="ba ba-ghost" onclick="openNego('${id}')"> Proposer une condition</button>
@@ -2010,8 +2114,9 @@ function openDetProspect(id){
 
         <!-- ACTIONS SECONDAIRES -->
         <div class="sec-actions">
-          <button class="sa" onclick="toast('Message recommandation copie ','ok')"> Demander recommandation</button>
-          <button class="sa" onclick="toast('Info metier preparee ','ok')"> Parler du metier</button>
+          <button class="sa" onclick="openAchatProspect('${id}')" style="background:var(--mint-pale);color:var(--green);border-color:var(--mint-light);font-weight:600"> Il a acheté ?</button>
+          <button class="sa" onclick="toast('Message recommandation copie','ok')"> Demander recommandation</button>
+          <button class="sa" onclick="toast('Info metier preparee','ok')"> Parler du metier</button>
         </div>
       </div>
     </div>
@@ -2442,17 +2547,184 @@ function resetToAuto(){
   switchMsgTab('auto')
 }
 
+// ── STATUT CLIENT (FORMULAIRE) ─────────────────────────────────
+let currentCfStatut = 'acquereur'
+function setCfStatut(statut){
+  currentCfStatut = statut
+  const btns = {
+    acquereur: document.getElementById('cf-st-acq'),
+    vendeur: document.getElementById('cf-st-vend'),
+    les_deux: document.getElementById('cf-st-deux'),
+  }
+  Object.keys(btns).forEach(k => {
+    if(!btns[k]) return
+    btns[k].style.borderColor = k===statut ? 'var(--green)' : 'var(--border)'
+    btns[k].style.background = k===statut ? 'var(--mint-pale)' : '#fff'
+  })
+  const acqFields = document.getElementById('cf-acq-fields')
+  const vendFields = document.getElementById('cf-vend-fields')
+  if(acqFields) acqFields.style.display = (statut==='acquereur'||statut==='les_deux') ? 'block' : 'none'
+  if(vendFields) vendFields.style.display = (statut==='vendeur'||statut==='les_deux') ? 'block' : 'none'
+}
+
+// ── OFFRE & NEGO AVEC MAIL ─────────────────────────────────────
+let currentOffreProspectId = null
+let currentNegoProspectId = null
+let currentOffreType = null
+let currentNegoType = null
+
+const OFFRE_MSGS = {
+  diagnostics: (fn,city) => `Bonjour ${fn},\n\nJe reviens vers vous avec une proposition concrète.\n\nDans le cadre de notre accompagnement, je vous offre la prise en charge complète des diagnostics obligatoires (DPE, électricité, gaz) pour votre bien à ${city}.\n\nCela représente un gain de temps et de budget non négligeable pour préparer la mise en vente dans les meilleures conditions.\n\nJe reste disponible pour en discuter.\n\nBien cordialement,`,
+  photos: (fn,city) => `Bonjour ${fn},\n\nJe voulais vous faire une proposition pour valoriser votre bien à ${city}.\n\nJe vous offre un reportage photo professionnel inclus dans notre mandat. Des photos de qualité font toute la différence pour attirer les bons acheteurs rapidement.\n\nN'hésitez pas à me contacter si vous souhaitez en savoir plus.\n\nBien cordialement,`,
+  pack: (fn,city) => `Bonjour ${fn},\n\nPour votre bien à ${city}, je vous propose notre pack marketing complet : diffusion sur tous les portails premium, réseaux sociaux, et communication ciblée — tout inclus dans le mandat, sans frais supplémentaires.\n\nC'est la formule qui maximise la visibilité et réduit le délai de vente.\n\nJe serais ravi d'en discuter avec vous.\n\nBien cordialement,`,
+  visite360: (fn,city) => `Bonjour ${fn},\n\nPour mettre en valeur votre bien à ${city}, je vous propose l'ajout d'une visite virtuelle 360° et d'un survol drone — inclus dans notre mandat.\n\nCes outils attirent en moyenne 3x plus de visites qualifiées et permettent aux acheteurs de se projeter avant même de se déplacer.\n\nJe reste à votre disposition.\n\nBien cordialement,`,
+}
+
+const NEGO_MSGS = {
+  honoraires: (fn) => `Bonjour ${fn},\n\nJe me permets de vous recontacter avec une proposition exceptionnelle.\n\nJusqu'à la fin du mois, je vous propose une réduction sur mes honoraires si vous nous confiez le mandat avant cette date.\n\nC'est une opportunité limitée dans le temps que je réserve à mes contacts prioritaires.\n\nN'hésitez pas à me recontacter rapidement.\n\nBien cordialement,`,
+  urgence: (fn) => `Bonjour ${fn},\n\nSuite à notre échange, je vous transmets une proposition valable 7 jours.\n\nSi vous me confiez votre mandat cette semaine, je m'engage sur des conditions préférentielles et une mise en marché immédiate.\n\nAu-delà de ce délai, les conditions standards s'appliqueront.\n\nJe reste joignable à tout moment.\n\nBien cordialement,`,
+  exclusivite: (fn) => `Bonjour ${fn},\n\nJe voulais vous présenter les avantages concrets du mandat exclusif pour votre bien.\n\nAvec un mandat exclusif, votre bien bénéficie de toute mon attention : communication renforcée, suivi hebdomadaire, et accès à mon réseau d'acheteurs qualifiés.\n\nC'est la formule qui vend plus vite et souvent à un meilleur prix.\n\nJe suis disponible pour en discuter.\n\nBien cordialement,`,
+  estimation: (fn) => `Bonjour ${fn},\n\nJe vous propose une estimation gratuite et sans engagement de votre bien.\n\nCela vous permettra d'avoir une vision claire du marché actuel dans votre secteur et de votre potentiel de plus-value, sans aucune obligation de ma part.\n\nUn simple rendez-vous d'une heure suffit. Je suis disponible cette semaine si vous le souhaitez.\n\nBien cordialement,`,
+}
+
 function openOffre(id){
-  const p=PROSPECTS.find(x=>x.id===id);if(!p)return
-  document.getElementById('mo-name').textContent=p.fn+' '+p.ln+'  '+PROJETS[p.projet]
+  const p=PROSPECTS.find(x=>x.id===id)||CLIENTS[id];if(!p)return
+  currentOffreProspectId = id
+  currentOffreType = null
+  document.getElementById('mo-name').textContent=p.fn+' '+p.ln
+  document.getElementById('offre-msg-wrap').style.display='none'
+  document.getElementById('offre-send-btn').style.display='none'
+  document.querySelectorAll('[id^="offre-"]').forEach(el=>{
+    el.style.borderColor='var(--border)';el.style.background='#fff'
+  })
   openModal('modal-offre')
 }
 
+function selectOffre(type){
+  currentOffreType = type
+  const p = PROSPECTS.find(x=>x.id===currentOffreProspectId)||CLIENTS[currentOffreProspectId]
+  if(!p) return
+  document.querySelectorAll('[id^="offre-"]').forEach(el=>{
+    el.style.borderColor='var(--border)';el.style.background='#fff'
+  })
+  const el = document.getElementById('offre-'+type)
+  if(el){ el.style.borderColor='var(--green)';el.style.background='var(--mint-pale)' }
+  const msg = OFFRE_MSGS[type] ? OFFRE_MSGS[type](p.fn, p.secteur||p.city||'votre secteur') : ''
+  document.getElementById('offre-msg-text').value = msg
+  document.getElementById('offre-msg-wrap').style.display='block'
+  document.getElementById('offre-send-btn').style.display='inline-block'
+}
+
+function envoyerOffre(){
+  const p = PROSPECTS.find(x=>x.id===currentOffreProspectId)||CLIENTS[currentOffreProspectId]
+  if(!p) return
+  const msg = document.getElementById('offre-msg-text').value
+  const mailto = 'mailto:'+(p.email||'')+'?subject=Proposition pour votre projet immobilier&body='+encodeURIComponent(msg)
+  window.open(mailto)
+  closeModal('modal-offre')
+  toast('Email ouvert dans votre messagerie','ok')
+}
+
 function openNego(id){
-  const p=PROSPECTS.find(x=>x.id===id);if(!p)return
+  const p=PROSPECTS.find(x=>x.id===id)||CLIENTS[id];if(!p)return
+  currentNegoProspectId = id
+  currentNegoType = null
   document.getElementById('mn-name').textContent=p.fn+' '+p.ln
+  document.getElementById('nego-msg-wrap').style.display='none'
+  document.getElementById('nego-send-btn').style.display='none'
+  document.querySelectorAll('[id^="nego-"]').forEach(el=>{
+    el.style.borderColor='var(--border)';el.style.background='#fff'
+  })
   openModal('modal-nego')
 }
+
+function selectNego(type){
+  currentNegoType = type
+  const p = PROSPECTS.find(x=>x.id===currentNegoProspectId)||CLIENTS[currentNegoProspectId]
+  if(!p) return
+  document.querySelectorAll('[id^="nego-"]').forEach(el=>{
+    el.style.borderColor='var(--border)';el.style.background='#fff'
+  })
+  const el = document.getElementById('nego-'+type)
+  if(el){ el.style.borderColor='var(--green)';el.style.background='var(--mint-pale)' }
+  const msg = NEGO_MSGS[type] ? NEGO_MSGS[type](p.fn) : ''
+  document.getElementById('nego-msg-text').value = msg
+  document.getElementById('nego-msg-wrap').style.display='block'
+  document.getElementById('nego-send-btn').style.display='inline-block'
+}
+
+function envoyerNego(){
+  const p = PROSPECTS.find(x=>x.id===currentNegoProspectId)||CLIENTS[currentNegoProspectId]
+  if(!p) return
+  const msg = document.getElementById('nego-msg-text').value
+  const mailto = 'mailto:'+(p.email||'')+'?subject=Proposition pour votre projet immobilier&body='+encodeURIComponent(msg)
+  window.open(mailto)
+  closeModal('modal-nego')
+  toast('Email ouvert dans votre messagerie','ok')
+}
+
+// ── PROSPECT A ACHETÉ ──────────────────────────────────────────
+let currentAchatProspectId = null
+
+function openAchatProspect(id){
+  currentAchatProspectId = id
+  const p = PROSPECTS.find(x=>x.id===id);if(!p)return
+  document.getElementById('map-name').textContent = p.fn+' '+p.ln
+  openModal('modal-achat-prospect')
+}
+
+async function basculerProspectAcquereur(){
+  const p = PROSPECTS.find(x=>x.id===currentAchatProspectId);if(!p)return
+  // Créer le client depuis le prospect
+  const newId = 'new-'+Date.now()
+  const newC = {
+    id:newId, fn:p.fn, ln:p.ln,
+    init:(p.fn[0]+(p.ln[0]||'')).toUpperCase(),
+    avCls:'av-cool', city:p.secteur||'', surface:0,
+    year:new Date().getFullYear(), purchase:0, score:0,
+    phone:p.phone||'', email:p.email||'',
+    dateNaissance:null, dateAcquisition:new Date().toISOString().split('T')[0],
+    finBail:null, projet:'reflechit', projetNote:'Ancien prospect — vient d\'acheter',
+    lastDate:new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}),
+    lastNote:'Bascule depuis prospect',
+    notes:'Ancien prospect — converti en client acquéreur',
+    scoreReasons:['Nouveau client acquéreur'],
+    statut_client:'acquereur',
+    avis:null,
+    dvf:{est:0,gainPct:0,gainEur:0,opp:'faible',conf:'indicative',date:'',avgM2:0,comp:0,samples:[]},
+    journal:[]
+  }
+  CLIENTS[newId] = newC
+  await saveClient(newC)
+  // Supprimer le prospect
+  const idx = PROSPECTS.findIndex(x=>x.id===currentAchatProspectId)
+  if(idx>-1) PROSPECTS.splice(idx,1)
+  closeModal('modal-achat-prospect')
+  renderClients()
+  renderProspects(currentFilter)
+  renderDashboard()
+  toast(p.fn+' '+p.ln+' bascule en client acquereur','ok')
+}
+
+function marquerInteretBien(){
+  const p = PROSPECTS.find(x=>x.id===currentAchatProspectId);if(!p)return
+  p.niveau = 'chaud'
+  p.lastNote = 'Toujours interesse par un bien — projet en cours'
+  closeModal('modal-achat-prospect')
+  renderProspects(currentFilter)
+  toast('Projet marque comme actif','ok')
+}
+
+function marquerAchatAilleurs(){
+  const p = PROSPECTS.find(x=>x.id===currentAchatProspectId);if(!p)return
+  p.raisonNonAchat = 'trouve_ailleurs'
+  p.niveau = 'froid'
+  p.statut = 'inactif'
+  closeModal('modal-achat-prospect')
+  renderProspects(currentFilter)
+  toast('Prospect marque comme inactif — achat ailleurs','ok')
+}
+
 
 //  ENVOI GROUPE PROSPECTS CHAUDS 
 const TEMPLATES_GROUPE = [
@@ -2910,40 +3182,58 @@ function addClient(){
   const fn=document.getElementById('cf-fn').value.trim()
   const ln=document.getElementById('cf-ln').value.trim()
   if(!fn||!ln){toast('Prenom et nom obligatoires','er');return}
+  if(!currentCfStatut){toast('Choisissez un profil (Acquereur / Vendeur / Les deux)','er');return}
   const init=(fn[0]+(ln[0]||'')).toUpperCase()
-  const purchase=parseInt(document.getElementById('cf-purchase').value)||0
-  const value=parseInt(document.getElementById('cf-value').value)||0
-  const year=parseInt(document.getElementById('cf-year').value)||new Date().getFullYear()
-  const gainPct=purchase&&value?+((( value-purchase)/purchase)*100).toFixed(1):0
-  const gainEur=value-purchase
-  const opp=gainPct>=20?'tres fort':gainPct>=15?'fort':gainPct>=10?'interessant':'faible'
-  const score=calcClientScore({purchase,value,year,finBail:document.getElementById('cf-bail').value||null,avis:null})
 
-  const newC={
-    id:'new-'+Date.now(),fn,ln,init,avCls:'av-cool',
-    city:document.getElementById('cf-city').value||'',
-    surface:parseInt(document.getElementById('cf-surface').value)||0,
-    year,purchase,score:score.total,
-    last:'À l\'instant',
-    email:document.getElementById('cf-em').value,
-    phone:document.getElementById('cf-tel').value,
-    notes:document.getElementById('cf-notes').value,
-    scoreReasons:score.reasons,
-    finBail:document.getElementById('cf-bail').value||null,
-    dateNaissance:document.getElementById('cf-ddn').value||null,
-    dateAcquisition:document.getElementById('cf-dacq').value||null,
-    dvf:{
-      est:value||purchase,
-      avgM2:document.getElementById('cf-surface').value?Math.round(value/parseInt(document.getElementById('cf-surface').value)):0,
-      comp:0,gainPct,gainEur,opp,conf:'en cours',date:'aujourd\'hui',samples:[]
-    }
+  const isAcq = currentCfStatut==='acquereur'||currentCfStatut==='les_deux'
+  const isVend = currentCfStatut==='vendeur'||currentCfStatut==='les_deux'
+
+  const purchase = isAcq ? (parseInt(document.getElementById('cf-purchase').value)||0) : 0
+  const dacq     = isAcq ? (document.getElementById('cf-dacq').value||null) : null
+  const year     = dacq ? new Date(dacq).getFullYear() : new Date().getFullYear()
+  const surface  = isAcq ? (parseInt(document.getElementById('cf-surface').value)||0) : (isVend ? (parseInt(document.getElementById('cf-vente-surface')?.value)||0) : 0)
+  const bail     = isAcq ? (document.getElementById('cf-bail').value||null) : null
+
+  const ventePrix = isVend ? (parseInt(document.getElementById('cf-vente-prix')?.value)||0) : 0
+  const venteBien = isVend ? (document.getElementById('cf-vente-bien')?.value||'') : ''
+  const venteDate = isVend ? (document.getElementById('cf-vente-date')?.value||null) : null
+  const venteRachat = isVend ? (document.getElementById('cf-vente-rachat')?.value||'') : ''
+
+  // Score initial
+  const scoreData = calcClientScore({purchase, year, finBail:bail, avis:null, dvf:null})
+
+  const newC = {
+    id:'new-'+Date.now(), fn, ln, init, avCls:'av-cool',
+    statut_client: currentCfStatut,
+    city: document.getElementById('cf-city').value||'',
+    surface, year, purchase, score:scoreData.total,
+    email: document.getElementById('cf-em').value,
+    phone: document.getElementById('cf-tel').value,
+    notes: document.getElementById('cf-notes').value,
+    scoreReasons: scoreData.reasons,
+    finBail: bail,
+    dateNaissance: document.getElementById('cf-ddn').value||null,
+    dateAcquisition: dacq,
+    adresse: isAcq ? (document.getElementById('cf-adresse')?.value||'') : '',
+    // Données vendeur
+    ventePrix, venteBien, venteDate, venteRachat,
+    lastDate: new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}),
+    lastNote: '',
+    projet: 'reflechit',
+    projetNote: '',
+    avis: null,
+    dvf: {est:0,gainPct:0,gainEur:0,opp:'faible',conf:'indicative',date:'',avgM2:0,comp:0,samples:[]},
+    journal: []
   }
   CLIENTS[newC.id]=newC
   closeModal('modal-add-client')
   renderClients()
-  toast(`${fn} ${ln} ajoute`,'ok')
-  saveClient(newC) // Sauvegarder en base Supabase
-  ;['cf-fn','cf-ln','cf-em','cf-tel','cf-city','cf-surface','cf-year','cf-purchase','cf-value','cf-bail','cf-notes','cf-ddn','cf-dacq'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=''})
+  renderDashboard()
+  toast(fn+' '+ln+' ajoute','ok')
+  saveClient(newC)
+  // Reset formulaire
+  ;['cf-fn','cf-ln','cf-em','cf-tel','cf-city','cf-surface','cf-ddn','cf-dacq','cf-purchase','cf-bail','cf-adresse','cf-notes','cf-vente-prix','cf-vente-bien','cf-vente-date'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=''})
+  setCfStatut('acquereur')
 }
 
 //  CAMPAGNES HISTORIQUE 
@@ -3309,18 +3599,20 @@ function addProspect(){
     visite:document.getElementById('pf-bien').value||'',
     budget:document.getElementById('pf-budget').value||'',
     secteur:document.getElementById('pf-secteur').value||'',
-    dateVisite:document.getElementById('pf-date').value||'Aujourd\'hui',
+    dateVisite:document.getElementById('pf-date').value||new Date().toLocaleDateString('fr-FR'),
     projet:document.getElementById('pf-projet').value,
     statut:'invite',niveau:'froid',score:15,
     raisonNonAchat:null,raisonDetail:null,emailCommercial:null,
-    derniere:'Email consentement envoye',
+    derniere:'Nouveau prospect',lastDate:'',lastNote:'',
     notes:document.getElementById('pf-notes').value,
-    scoreReasons:['Nouveau prospect','Email consentement envoye','En attente de reponse']
+    scoreReasons:['Nouveau prospect']
   }
   PROSPECTS.unshift(newP)
   closeModal('modal-add-prospect')
   renderProspects(currentFilter)
-  toast(`${fn} ${ln} ajoute  Email consentement envoye automatiquement `,'ok')
+  renderDashboard()
+  toast(fn+' '+ln+' ajoute','ok')
+  saveProspect(newP) // Sauvegarder en Supabase
   ;['pf-fn','pf-ln','pf-em','pf-tel','pf-bien','pf-budget','pf-secteur','pf-date','pf-notes'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=''})
 }
 
