@@ -431,7 +431,7 @@ button{font-family:var(--sans);cursor:pointer}
     <div class="sb-sec">Navigation</div>
     <button class="sb-lnk on" id="sl-dash"      onclick="show('dash')">      <span class="sb-ic">◼</span>Dashboard</button>
     <button class="sb-lnk"    id="sl-clients"   onclick="show('clients')">   <span class="sb-ic">●</span>Clients <span class="sb-badge" id="sb-clients-count">0</span></button>
-    <button class="sb-lnk"    id="sl-prospects" onclick="show('prospects')"> <span class="sb-ic">◆</span>Prospects <span id="sb-hot" class="sb-hot-badge" style="display:none"></span></button>
+    <button class="sb-lnk"    id="sl-prospects" onclick="show('prospects')"> <span class="sb-ic">◆</span>Prospects <span class="sb-badge" id="sb-prospects-count" style="display:none"></span><span id="sb-hot" class="sb-hot-badge" style="display:none"></span></button>
     <button class="sb-lnk"    id="sl-campagnes" onclick="show('campagnes')"> <span class="sb-ic">📨</span>Campagnes</button>
     <div class="sb-sep"></div>
     <div class="sb-sec">Compte</div>
@@ -1902,6 +1902,18 @@ function renderProspects(f){
       banner.style.display = 'none'
     }
   }
+  // Badge total prospects sidebar
+  const sbProspectsCount = document.getElementById('sb-prospects-count')
+  if(sbProspectsCount){
+    if(PROSPECTS.length > 0){
+      sbProspectsCount.style.display = 'inline'
+      sbProspectsCount.textContent = PROSPECTS.length
+    } else {
+      sbProspectsCount.style.display = 'none'
+    }
+  }
+
+  // Badge chauds animé
   if(sbHot){
     if(chauds.length > 0){
       sbHot.style.display = 'inline'
@@ -2233,12 +2245,45 @@ function infoGrid(c,years){
 }
 
 function infoProspect(p){
-  return`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
-    <div style="background:var(--warm);border-radius:var(--r);padding:14px 16px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px">Bien visite</div><div style="font-size:13px;font-weight:500;line-height:1.4">${p.visite}</div></div>
-    <div style="background:var(--warm);border-radius:var(--r);padding:14px 16px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px">Date de visite</div><div style="font-family:var(--serif);font-size:18px;font-weight:700">${p.dateVisite}</div></div>
-    <div style="background:var(--warm);border-radius:var(--r);padding:14px 16px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px">Projet</div><div style="font-size:14px;font-weight:600">${PROJETS[p.projet]}</div></div>
-    <div style="background:var(--warm);border-radius:var(--r);padding:14px 16px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px">Statut</div><div style="font-size:14px;font-weight:600">${p.statut.charAt(0).toUpperCase()+p.statut.slice(1)}</div></div>
+  const niveauColors = {
+    chaud: {bg:'var(--hot-bg)',color:'var(--hot)',label:'🔥 Chaud'},
+    tiede: {bg:'#FEF5E0',color:'#C47B00',label:'Tiède'},
+    froid: {bg:'var(--warm)',color:'var(--muted)',label:'Froid'}
+  }
+  const nc = niveauColors[p.niveau] || niveauColors.froid
+
+  return`<div style="margin-bottom:18px">
+    <!-- Sélecteur de niveau -->
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px">Niveau d'engagement</div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button onclick="setNiveauProspect('${p.id}','chaud')" style="flex:1;padding:8px;border-radius:8px;border:2px solid ${p.niveau==='chaud'?'var(--hot)':'var(--border)'};background:${p.niveau==='chaud'?'var(--hot-bg)':'#fff'};color:${p.niveau==='chaud'?'var(--hot)':'var(--muted)'};font-size:12px;font-weight:700;cursor:pointer;transition:all .15s">🔥 Chaud</button>
+      <button onclick="setNiveauProspect('${p.id}','tiede')" style="flex:1;padding:8px;border-radius:8px;border:2px solid ${p.niveau==='tiede'?'#C47B00':'var(--border)'};background:${p.niveau==='tiede'?'#FEF5E0':'#fff'};color:${p.niveau==='tiede'?'#C47B00':'var(--muted)'};font-size:12px;font-weight:700;cursor:pointer;transition:all .15s">Tiède</button>
+      <button onclick="setNiveauProspect('${p.id}','froid')" style="flex:1;padding:8px;border-radius:8px;border:2px solid ${p.niveau==='froid'?'var(--muted)':'var(--border)'};background:${p.niveau==='froid'?'var(--warm)':'#fff'};color:${p.niveau==='froid'?'var(--ink)':'var(--muted)'};font-size:12px;font-weight:500;cursor:pointer;transition:all .15s">Froid</button>
+    </div>
+    <!-- Infos -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      ${p.visite?`<div style="background:var(--warm);border-radius:var(--r);padding:14px 16px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px">Bien visité</div><div style="font-size:13px;font-weight:500;line-height:1.4">${p.visite}</div></div>`:''}
+      ${p.dateVisite?`<div style="background:var(--warm);border-radius:var(--r);padding:14px 16px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px">Date de visite</div><div style="font-family:var(--serif);font-size:18px;font-weight:700">${p.dateVisite}</div></div>`:''}
+      ${p.projet?`<div style="background:var(--warm);border-radius:var(--r);padding:14px 16px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px">Projet</div><div style="font-size:14px;font-weight:600">${PROJETS[p.projet]||p.projet}</div></div>`:''}
+      ${p.budget?`<div style="background:var(--warm);border-radius:var(--r);padding:14px 16px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px">Budget</div><div style="font-size:14px;font-weight:600">${p.budget}</div></div>`:''}
+      ${p.secteur?`<div style="background:var(--warm);border-radius:var(--r);padding:14px 16px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px">Secteur</div><div style="font-size:14px;font-weight:600">${p.secteur}</div></div>`:''}
+    </div>
   </div>`
+}
+
+async function setNiveauProspect(id, niveau){
+  const p = PROSPECTS.find(x=>x.id===id); if(!p) return
+  p.niveau = niveau
+  // Recalculer le score automatiquement
+  const result = calcProspectScore(p)
+  p.score = result.total
+  p.scoreReasons = result.reasons
+  // Sauvegarder en base
+  await saveProspect(p)
+  renderProspects(currentFilter)
+  renderDashboard()
+  openDetProspect(id)
+  toast('Niveau mis à jour — score recalculé','ok')
 }
 
 function contactBlock(c){
@@ -3073,91 +3118,126 @@ function calcClientScore(c){
   let total = 0
   const reasons = []
 
-  // ── SIGNAL 1 : Avis de valeur pose par le mandataire (max 40 pts)
-  // C'est le signal le plus fort — le mandataire a visite, estime, documente.
+  // ── SIGNAL 1 : Avis de valeur (0-40 pts)
   if(c.avis && c.avis.prix && c.purchase){
     const gainPct = ((c.avis.prix - c.purchase) / c.purchase) * 100
-    if(gainPct >= 30){
+    if(gainPct >= 20){
       total += 40
-      reasons.push('Avis de valeur : +'+gainPct.toFixed(0)+'% (tres forte plus-value)')
-    } else if(gainPct >= 20){
-      total += 32
-      reasons.push('Avis de valeur : +'+gainPct.toFixed(0)+'% (forte plus-value)')
+      reasons.push('Avis de valeur : +'+gainPct.toFixed(0)+'% — forte plus-value')
     } else if(gainPct >= 10){
-      total += 20
-      reasons.push('Avis de valeur : +'+gainPct.toFixed(0)+'% (plus-value interessante)')
+      total += 25
+      reasons.push('Avis de valeur : +'+gainPct.toFixed(0)+'% — plus-value intéressante')
     } else if(gainPct > 0){
       total += 10
-      reasons.push('Avis de valeur pose : plus-value faible')
+      reasons.push('Avis de valeur posé — plus-value faible')
     } else {
       total += 5
-      reasons.push('Avis de valeur pose : prix stable')
+      reasons.push('Avis de valeur posé — marché stable')
     }
-  } else if(c.dvf && c.dvf.gainPct && c.dvf.gainPct > 0){
-    // Pas d'avis de valeur — on utilise DVF en appui seulement
-    const pts = Math.min(Math.round(c.dvf.gainPct * 0.5), 20)
-    total += pts
-    reasons.push('Estimation DVF : +'+c.dvf.gainPct+'% (sans avis de valeur)')
   } else {
-    reasons.push('Aucune estimation : posez un avis de valeur pour booster le score')
+    reasons.push('Aucune estimation — posez un avis de valeur pour booster le score')
   }
 
-  // ── SIGNAL 2 : Anciennete de detention (max 20 pts)
-  // Plus le client detient longtemps, plus la plus-value est probable.
+  // ── SIGNAL 2 : Ancienneté de détention (0-20 pts)
   const currentYear = new Date().getFullYear()
   const years = c.year ? currentYear - c.year : 0
   if(years >= 10){
     total += 20
-    reasons.push(''+years+' ans de detention (maturite optimale)')
+    reasons.push(years+' ans de détention — maturité optimale')
   } else if(years >= 7){
     total += 15
-    reasons.push(''+years+' ans de detention (fenetre favorable)')
+    reasons.push(years+' ans de détention — fenêtre favorable')
   } else if(years >= 5){
     total += 10
-    reasons.push(''+years+' ans de detention')
+    reasons.push(years+' ans de détention')
   } else if(years >= 3){
     total += 5
-    reasons.push(''+years+' ans de detention')
+    reasons.push(years+' ans de détention')
   }
 
-  // ── SIGNAL 3 : Fin de bail (max 20 pts)
-  // Un bail qui se termine = motivation concrete de vendre.
-  if(c.finBail){
-    total += 20
-    reasons.push('Fin de bail : '+c.finBail+' (motivation forte)')
-  }
-
-  // ── SIGNAL 4 : Statut projet declare (max 15 pts)
+  // ── SIGNAL 3 : Projet déclaré (0-20 pts)
   if(c.projet === 'confirme'){
-    total += 15
-    reasons.push('Projet de vente confirme')
+    total += 20
+    reasons.push('Projet de vente confirmé')
   } else if(c.projet === 'reflechit'){
-    total += 7
-    reasons.push('Projet en reflexion')
+    total += 10
+    reasons.push('Projet en réflexion')
   }
 
-  // ── SIGNAL 5 : Dernier contact (max 10 pts)
-  // Paradoxe : pas de contact recent = opportunite de relance.
-  if(c.lastDate){
-    const last = new Date(c.lastDate)
-    const now = new Date()
-    const diffDays = Math.round((now - last) / 86400000)
-    if(diffDays > 90){
-      total += 10
-      reasons.push('Plus de 3 mois sans contact (relance urgente)')
-    } else if(diffDays > 30){
+  // ── SIGNAL 4 : Contact récent dans le journal (0-20 pts)
+  if(c.journal && c.journal.length > 0){
+    const lastEntry = c.journal[0]
+    const lastDate = new Date(lastEntry.dateISO || lastEntry.date)
+    const diffDays = Math.round((new Date() - lastDate) / 86400000)
+    if(diffDays <= 7){
+      total += 20
+      reasons.push('Contact il y a moins d\'1 semaine')
+    } else if(diffDays <= 30){
+      total += 15
+      reasons.push('Contact il y a moins d\'1 mois')
+    } else if(diffDays <= 90){
       total += 5
-      reasons.push('Plus d\'1 mois sans contact')
+      reasons.push('Contact il y a moins de 3 mois')
     } else {
-      total += 2
-      reasons.push('Contact recent')
+      total += 0
+      reasons.push('Plus de 3 mois sans contact — relance recommandée')
     }
+  }
+
+  // ── BONUS : Fin de bail
+  if(c.finBail){
+    total += 10
+    reasons.push('Fin de bail : '+c.finBail)
   }
 
   return { total: Math.min(total, 99), reasons }
 }
 
-// Recalculer le score de tous les clients existants au chargement
+// ── SCORING PROSPECT — automatique basé sur le niveau choisi ──
+function calcProspectScore(p){
+  let total = 0
+  const reasons = []
+
+  // Signal principal — niveau défini par le mandataire
+  if(p.niveau === 'chaud'){
+    total += 70
+    reasons.push('Niveau chaud — défini par vous')
+  } else if(p.niveau === 'tiede'){
+    total += 45
+    reasons.push('Niveau tiède — défini par vous')
+  } else {
+    total += 15
+    reasons.push('Niveau froid — défini par vous')
+  }
+
+  // Bonus email renseigné
+  if(p.email && p.email.trim()){
+    total += 10
+    reasons.push('Email renseigné')
+  }
+
+  // Bonus contact récent
+  if(p.lastDate){
+    const last = new Date(p.lastDate)
+    const diffDays = Math.round((new Date() - last) / 86400000)
+    if(diffDays <= 7){
+      total += 10
+      reasons.push('Contact il y a moins d\'1 semaine')
+    } else if(diffDays <= 30){
+      total += 5
+      reasons.push('Contact il y a moins d\'1 mois')
+    }
+  }
+
+  // Bonus projet double (achat + vente)
+  if(p.projet === 'vente-achat'){
+    total += 10
+    reasons.push('Projet achat + vente — double opportunité')
+  }
+
+  return { total: Math.min(total, 99), reasons }
+}
+
 // ── ANNIVERSAIRES ─────────────────────────────────────────────
 function getAnniversaires(){
   const now = new Date()
@@ -3474,6 +3554,11 @@ function recalcAllScores(){
     const result = calcClientScore(c)
     c.score = result.total
     c.scoreReasons = result.reasons
+  })
+  PROSPECTS.forEach(p => {
+    const result = calcProspectScore(p)
+    p.score = result.total
+    p.scoreReasons = result.reasons
   })
 }
 recalcAllScores()
@@ -3955,12 +4040,16 @@ function addProspect(){
     secteur:document.getElementById('pf-secteur').value||'',
     dateVisite: cleanDate(document.getElementById('pf-date').value) || todayISO(),
     projet:document.getElementById('pf-projet').value,
-    statut:'invite',niveau:'froid',score:15,
-    raisonNonAchat:null,raisonDetail:null,emailCommercial:null,
-    derniere:'Nouveau prospect',lastDate:'',lastNote:'',
+    statut:'invite', niveau:'froid', score:15,
+    raisonNonAchat:null, raisonDetail:null, emailCommercial:null,
+    derniere:'Nouveau prospect', lastDate:'', lastNote:'',
     notes:document.getElementById('pf-notes').value,
     scoreReasons:['Nouveau prospect']
   }
+  // Calculer le score automatiquement
+  const scoreResult = calcProspectScore(newP)
+  newP.score = scoreResult.total
+  newP.scoreReasons = scoreResult.reasons
   PROSPECTS.unshift(newP)
   closeModal('modal-add-prospect')
   renderProspects(currentFilter)
