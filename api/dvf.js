@@ -8,12 +8,15 @@ export default async function handler(req, res) {
   const { adresse, surface } = req.body
   if (!adresse) return res.status(400).json({ error: 'Adresse manquante' })
 
+  const IMMO_API_KEY = process.env.IMMO_API_KEY
+  if (!IMMO_API_KEY) return res.status(500).json({ error: 'Clé Immo API manquante' })
+
   try {
-    // Étape 1 — Géocoder l'adresse
+    // Étape 1 — Géocoder l'adresse via API Adresse officielle
     const geoRes = await fetch(
       `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(adresse)}&limit=1`
     )
-    if (!geoRes.ok) throw new Error('Geocodage impossible - statut ' + geoRes.status)
+    if (!geoRes.ok) throw new Error('Geocodage impossible')
     const geoData = await geoRes.json()
 
     if (!geoData.features || geoData.features.length === 0) {
@@ -26,56 +29,60 @@ export default async function handler(req, res) {
     const ville = feature.properties.city
     const codePostal = feature.properties.postcode
 
-    // Étape 2 — API DVF via Cerema / data.gouv ressource directe
-    // Cette URL est stable et maintenue
-    const anneeMin = new Date().getFullYear() - 3
-    const url = `https://api.data.gouv.fr/api/1/datasets/5c4ae55a634f4117716d5656/resources/`
+    const surfNum = surface ? parseFloat(surface) : null
+
+    // Étape 2 — Recherche par proximité GPS via Immo API
+    // Rayon de 500m autour du bien, type Appartement
+    const nearbyUrl = `https://immoapi.app/v1/mutations/nearby?lat=${lat}&lon=${lng}&radius=500&type_local=Appartement&limit=30`
     
-    // Utiliser l'endpoint de recherche géographique DVF
-    const dvfUrl = `https://api-dvf.data.gouv.fr/api/v1/departements/${codeInsee.substring(0,2)}/communes/${codeInsee}/mutations?type_local=Appartement&page_size=40`
-    
-    const dvfRes = await fetch(dvfUrl, {
-      headers: { 'Accept': 'application/json' },
-      signal: AbortSignal.timeout(8000)
+    const dvfRes = await fetch(nearbyUrl, {
+      headers: {
+        'Authorization': `Bearer ${IMMO_API_KEY}`,
+        'Accept': 'application/json'
+      }
     })
 
-    let records = []
+    let mutations = []
+
     if (dvfRes.ok) {
       const dvfData = await dvfRes.json()
-      records = dvfData.mutations || dvfData.results || dvfData || []
+      mutations = dvfData.mutations || dvfData.results || dvfData || []
     }
 
-    // Fallback — recherche par coordonnées GPS
-    if (records.length === 0) {
-      const gpsUrl = `https://api-dvf.data.gouv.fr/api/v1/mutations?lat=${lat}&lon=${lng}&dist=1000&type_local=Appartement&page_size=40`
-      const gpsRes = await fetch(gpsUrl, {
-        headers: { 'Accept': 'application/json' },
-        signal: AbortSignal.timeout(8000)
+    // Fallback — recherche par commune si pas assez de résultats GPS
+    if (mutations.length < 3) {
+      const communeUrl = `https://immoapi.app/v1/mutations?code_commune=${codeInsee}&type_local=Appartement&limit=40`
+      const communeRes = await fetch(communeUrl, {
+        headers: {
+          'Authorization': `Bearer ${IMMO_API_KEY}`,
+          'Accept': 'application/json'
+        }
       })
-      if (gpsRes.ok) {
-        const gpsData = await gpsRes.json()
-        records = gpsData.mutations || gpsData.results || []
+      if (communeRes.ok) {
+        const communeData = await communeRes.json()
+        mutations = communeData.mutations || communeData.results || communeData || []
       }
     }
 
-    if (records.length === 0) {
+    if (mutations.length === 0) {
       return res.status(200).json({
-        error: 'Aucune vente trouvee (code commune: ' + codeInsee + ')',
+        error: 'Aucune vente trouvée dans ce secteur',
         dvf: null,
         geo: { lat, lng, ville, codePostal, codeInsee }
       })
     }
 
     // Normaliser les champs
-    const surfNum = surface ? parseFloat(surface) : null
-    const normalized = records
+    const normalized = mutations
       .map(r => ({
-        prix: parseFloat(r.valeur_fonciere || r.prix || r.price || 0),
+        prix: parseFloat(r.valeur_fonciere || r.prix || 0),
         surface: parseFloat(r.surface_reelle_bati || r.surface || 0),
+        prixM2: parseFloat(r.prix_m2 || 0),
         date: r.date_mutation || r.date || ''
       }))
       .filter(r => r.prix > 50000 && r.surface > 10)
 
+    // Filtrer par surface ±30% si fournie
     const filtered = surfNum
       ? normalized.filter(r => r.surface >= surfNum * 0.7 && r.surface <= surfNum * 1.3)
       : normalized
@@ -83,10 +90,15 @@ export default async function handler(req, res) {
     const ventes = (filtered.length >= 3 ? filtered : normalized).slice(0, 15)
 
     if (ventes.length === 0) {
-      return res.status(200).json({ error: 'Donnees insuffisantes', dvf: null, geo: { lat, lng, ville, codePostal, codeInsee } })
+      return res.status(200).json({
+        error: 'Données insuffisantes',
+        dvf: null,
+        geo: { lat, lng, ville, codePostal, codeInsee }
+      })
     }
 
-    const prixM2List = ventes.map(v => v.prix / v.surface)
+    // Calculer prix moyen au m²
+    const prixM2List = ventes.map(v => v.prixM2 || (v.prix / v.surface))
     const avgM2 = Math.round(prixM2List.reduce((a, b) => a + b, 0) / prixM2List.length)
     const estValeur = surfNum ? Math.round(avgM2 * surfNum) : null
 
@@ -94,12 +106,14 @@ export default async function handler(req, res) {
       d: v.date ? new Date(v.date).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' }) : '',
       s: Math.round(v.surface),
       p: Math.round(v.prix),
-      m: Math.round(v.prix / v.surface)
+      m: Math.round(v.prixM2 || v.prix / v.surface)
     }))
 
     return res.status(200).json({
       dvf: {
-        avgM2, est: estValeur, comp: ventes.length,
+        avgM2,
+        est: estValeur,
+        comp: ventes.length,
         conf: ventes.length >= 5 ? 'bonne' : 'indicative',
         date: new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }),
         samples
