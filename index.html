@@ -3809,8 +3809,8 @@ function renderCampagnes(){
       </div>
       <div style="padding:12px 20px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <span style="font-size:11px;color:var(--muted)">Destinataires :</span>
-        ${c.destinataires.map(d=>`<span style="font-size:11px;background:var(--warm);padding:2px 8px;border-radius:100px">${d}</span>`).join('')}
-        ${c.envois>3?`<span style="font-size:11px;color:var(--muted)">+${c.envois-c.destinataires.length} autres</span>`:''}
+        ${(c.destinataires||[]).slice(0,3).map(d=>`<span style="font-size:11px;background:var(--warm);padding:2px 8px;border-radius:100px">${d}</span>`).join('')}
+        ${c.envois>3?`<span style="font-size:11px;color:var(--muted)">+${c.envois-(c.destinataires||[]).length} autres</span>`:''}
         ${!isPlanif?`
         <div style="margin-left:auto">
           <div style="height:6px;width:120px;background:var(--cream);border-radius:3px;overflow:hidden">
