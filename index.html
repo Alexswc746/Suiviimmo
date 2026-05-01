@@ -1117,6 +1117,10 @@ button{font-family:var(--sans);cursor:pointer}
         <div class="f2">
           <div class="fld"><label>Adresse complète (pour DVF)</label><input id="cf-adresse" placeholder="12 rue Victor Hugo, Toulon"></div>
           <div class="fld"><label>Fin de bail (si locatif)</label><input id="cf-bail" placeholder="juin 2026"></div>
+        <div class="f2">
+          <div class="fld"><label>Section cadastrale <small style="color:var(--muted)">(du titre de propriété)</small></label><input id="cf-section" placeholder="Ex: 870H ou AB"></div>
+          <div class="fld"><label>Type de bien</label><select id="cf-type-dvf"><option value="Appartement">Appartement</option><option value="Maison">Maison</option></select></div>
+        </div>
         </div>
       </div>
 
@@ -1648,6 +1652,7 @@ function supabaseToClient(c){
       source: c.avis_source||'Manuel'
     } : null,
     adresse: c.adresse||'',
+    section_cadastrale: c.section_cadastrale||'',
     dvf: c.dvf_est ? {
       est: c.dvf_est, gainPct: c.dvf_gain_pct||0,
       gainEur: c.dvf_gain_eur||0, opp: c.dvf_opp||'faible',
@@ -1708,6 +1713,7 @@ async function saveClient(c){
     avis_date: cleanDate(c.avis?.dateISO||c.avis?.date)||null,
     avis_source: c.avis?.source||null,
     adresse: c.adresse||null,
+    section_cadastrale: c.section_cadastrale||null,
     dvf_est: c.dvf?.est||null, dvf_gain_pct: c.dvf?.gainPct||null,
     dvf_gain_eur: c.dvf?.gainEur||null, dvf_opp: c.dvf?.opp||null,
     dvf_conf: c.dvf?.conf||null, dvf_date: c.dvf?.date||null,
@@ -3630,7 +3636,7 @@ async function fetchDVF(clientId, adresse, surface){
     const res = await fetch('/api/dvf', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ adresse, surface })
+      body: JSON.stringify({ adresse, surface, section_cadastrale: c.section_cadastrale||'' })
     })
     const data = await res.json()
 
@@ -3749,6 +3755,7 @@ function addClient(){
     dateNaissance: document.getElementById('cf-ddn').value||null,
     dateAcquisition: dacq,
     adresse: isAcq ? (document.getElementById('cf-adresse')?.value||'') : (document.getElementById('cf-vente-adresse')?.value||''),
+    section_cadastrale: document.getElementById('cf-section')?.value||'',
     // Données vendeur
     ventePrix, venteBien, venteDate, venteRachat,
     lastDate: new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}),
@@ -3771,7 +3778,7 @@ function addClient(){
     toast('Calcul DVF en cours…','ok')
     fetchDVF(newC.id, adresseDVF, newC.surface)
   }
-  ;['cf-fn','cf-ln','cf-em','cf-tel','cf-city','cf-surface','cf-ddn','cf-dacq','cf-purchase','cf-bail','cf-adresse','cf-notes','cf-vente-prix','cf-vente-bien','cf-vente-date','cf-vente-adresse'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=''})
+  ;['cf-fn','cf-ln','cf-em','cf-tel','cf-city','cf-surface','cf-ddn','cf-dacq','cf-purchase','cf-bail','cf-adresse','cf-section','cf-notes','cf-vente-prix','cf-vente-bien','cf-vente-date','cf-vente-adresse'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=''})
   setCfStatut('acquereur')
 }
 
