@@ -2220,9 +2220,14 @@ function openDetClient(id){
         `:`
         <div class="bloc-meta">
           <span style="font-size:18px;flex-shrink:0"></span>
-          <div>Estimation basee sur <strong>${d.comp} ventes DVF recentes</strong> dans votre secteur  Prix moyen : <strong>${fmtM2(d.avgM2)}</strong><br>
-            <span style="font-size:11px;color:var(--muted2)">Ajoutez votre avis de valeur pour une estimation plus precise.</span><br>
-            <button onclick="rafraichirDVF('${id}')" style="margin-top:6px;background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer"> Rafraîchir DVF</button>
+          <div style="width:100%">
+            <div>Estimation basee sur <strong>${d.comp} ventes DVF recentes</strong> dans votre secteur  Prix moyen : <strong>${fmtM2(d.avgM2)}</strong><br>
+            <span style="font-size:11px;color:var(--muted2)">Ajoutez votre avis de valeur pour une estimation plus precise.</span></div>
+            <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+              <input id="adresse-dvf-${id}" value="${c.adresse||''}" placeholder="12 rue Victor Hugo, Toulon" style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;outline:none">
+              <button onclick="sauvegarderAdresseDVF('${id}')" style="background:var(--green);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">Enregistrer + DVF</button>
+              ${c.adresse?`<button onclick="rafraichirDVF('${id}')" style="background:none;border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer">↺ Rafraîchir</button>`:''}
+            </div>
           </div>
         </div>
         `}
@@ -3670,15 +3675,22 @@ async function fetchDVF(clientId, adresse, surface){
   }
 }
 
+async function sauvegarderAdresseDVF(clientId){
+  const c = CLIENTS[clientId]; if(!c) return
+  const input = document.getElementById('adresse-dvf-'+clientId)
+  const adresse = input ? input.value.trim() : ''
+  if(!adresse){ toast('Entrez une adresse complète','er'); return }
+  c.adresse = adresse
+  await saveClient(c)
+  toast('Adresse sauvegardée — calcul DVF en cours…','ok')
+  await fetchDVF(clientId, adresse, c.surface)
+  openDetClient(clientId)
+}
+
 async function rafraichirDVF(clientId){
   const c = CLIENTS[clientId]; if(!c) return
-  let adresse = c.adresse
-  if(!adresse){
-    adresse = prompt('Entrez l\'adresse complète du bien (ex: 12 rue Victor Hugo, Toulon) :')
-    if(!adresse) return
-    c.adresse = adresse.trim()
-    await saveClient(c)
-  }
+  const adresse = c.adresse || c.city
+  if(!adresse){ toast('Ajoutez d\'abord une adresse dans le champ ci-dessus','er'); return }
   toast('Calcul DVF en cours…','ok')
   await fetchDVF(clientId, adresse, c.surface)
   openDetClient(clientId)
