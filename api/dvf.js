@@ -8,6 +8,8 @@ export default async function handler(req, res) {
   const { adresse, surface, type_local = 'Appartement' } = req.body
   if (!adresse) return res.status(400).json({ error: 'Adresse manquante' })
 
+  const SUPABASE_URL = process.env.SUPABASE_URL || 'https://xzkzzxgkoxipmkbxynfq.supabase.co'
+  const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY
   const surfNum = surface ? parseFloat(surface) : null
 
   try {
@@ -24,84 +26,108 @@ export default async function handler(req, res) {
 
     const feature = geoData.features[0]
     const [lng, lat] = feature.geometry.coordinates
-    const codeInsee = feature.properties.citycode
     const ville = feature.properties.city
     const codePostal = feature.properties.postcode
+    const codeInsee = feature.properties.citycode
 
-    console.log('Geocodé:', ville, codeInsee)
+    console.log('Geocodé:', ville, lat, lng)
 
-    // Étape 2 — DVF direct depuis data.gouv.fr (Vercel côté serveur, pas de CORS)
-    const dvfUrl = `https://api.data.gouv.fr/dvf/v1/geojson/?code_insee=${codeInsee}`
-    console.log('DVF URL:', dvfUrl)
-
-    let features = []
-
-    const dvfRes = await fetch(dvfUrl, {
-      headers: { 'Accept': 'application/json' },
-      signal: AbortSignal.timeout(25000)
-    })
-
-    if (dvfRes.ok) {
-      const dvfData = await dvfRes.json()
-      features = dvfData.features || []
-    } else {
-      // Fallback par GPS
-      const pointRes = await fetch(
-        `https://api.data.gouv.fr/dvf/v1/geojson/?lat=${lat}&lon=${lng}&dist=1000`,
-        { headers: { 'Accept': 'application/json' }, signal: AbortSignal.timeout(25000) }
-      )
-      if (pointRes.ok) {
-        const pointData = await pointRes.json()
-        features = pointData.features || []
+    // Étape 2 — Interroger Supabase DVF par rayon GPS (500m)
+    // Utilise la fonction RPC PostGIS qu'on va créer
+    const dvfRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/rpc/dvf_par_rayon`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`
+        },
+        body: JSON.stringify({
+          p_lat: lat,
+          p_lon: lng,
+          p_rayon: 500,
+          p_type: type_local
+        })
       }
-    }
-
-    // Filtrer par type
-    const filtered = features.filter(f =>
-      f.properties?.type_local?.toLowerCase() === type_local.toLowerCase()
     )
-    const source = filtered.length >= 3 ? filtered : features
 
-    if (source.length === 0) {
-      return res.status(200).json({
-        error: 'Aucune vente trouvée',
-        dvf: null,
-        geo: { lat, lng, ville, codePostal, codeInsee }
-      })
+    if (!dvfRes.ok) {
+      const err = await dvfRes.text()
+      throw new Error(`Supabase DVF error: ${err}`)
     }
 
-    // Calculer prix/m²
-    const prixM2List = source
-      .map(f => {
-        const val = parseFloat(f.properties?.valeur_fonciere || 0)
-        const surf = parseFloat(f.properties?.surface_reelle_bati || 0)
-        return surf > 10 && val > 10000 ? val / surf : null
-      })
-      .filter(Boolean)
-      .sort((a, b) => a - b)
+    const transactions = await dvfRes.json()
+    console.log('Transactions trouvées:', transactions.length)
 
-    if (prixM2List.length === 0) {
-      return res.status(200).json({ error: 'Données insuffisantes', dvf: null, geo: { lat, lng, ville, codePostal, codeInsee } })
+    if (!transactions || transactions.length < 3) {
+      // Fallback rayon 1000m
+      const dvfRes2 = await fetch(
+        `${SUPABASE_URL}/rest/v1/rpc/dvf_par_rayon`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`
+          },
+          body: JSON.stringify({
+            p_lat: lat,
+            p_lon: lng,
+            p_rayon: 1500,
+            p_type: type_local
+          })
+        }
+      )
+      const transactions2 = await dvfRes2.json()
+      if (!transactions2 || transactions2.length < 3) {
+        return res.status(200).json({
+          error: 'Pas assez de ventes comparables dans ce secteur',
+          dvf: null,
+          geo: { lat, lng, ville, codePostal, codeInsee }
+        })
+      }
+      return calculerResultat(transactions2, surfNum, ville, codePostal, codeInsee, lat, lng, res)
     }
 
-    const avgM2 = Math.round(prixM2List[Math.floor(prixM2List.length / 2)])
-    const est = surfNum ? Math.round(avgM2 * surfNum) : null
-
-    console.log('DVF:', avgM2, '€/m² —', prixM2List.length, 'ventes')
-
-    return res.status(200).json({
-      dvf: {
-        avgM2, medianM2: avgM2, est,
-        comp: prixM2List.length,
-        conf: prixM2List.length >= 10 ? 'bonne' : 'indicative',
-        date: new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }),
-        samples: []
-      },
-      geo: { lat, lng, ville, codePostal, codeInsee }
-    })
+    return calculerResultat(transactions, surfNum, ville, codePostal, codeInsee, lat, lng, res)
 
   } catch (err) {
-    console.log('DVF error:', err.message)
+    console.error('DVF error:', err.message)
     return res.status(200).json({ error: err.message, dvf: null })
   }
+}
+
+function calculerResultat(transactions, surfNum, ville, codePostal, codeInsee, lat, lng, res) {
+  const prixM2List = transactions
+    .map(t => t.prix_m2)
+    .filter(p => p && p > 500 && p < 25000)
+    .sort((a, b) => a - b)
+
+  if (prixM2List.length === 0) {
+    return res.status(200).json({ error: 'Données insuffisantes', dvf: null })
+  }
+
+  const avgM2 = Math.round(prixM2List[Math.floor(prixM2List.length / 2)])
+  const est = surfNum ? Math.round(avgM2 * surfNum) : null
+
+  console.log(`DVF: ${avgM2}€/m² — ${prixM2List.length} ventes comparables`)
+
+  return res.status(200).json({
+    dvf: {
+      avgM2,
+      medianM2: avgM2,
+      est,
+      comp: prixM2List.length,
+      conf: prixM2List.length >= 10 ? 'bonne' : 'indicative',
+      date: new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }),
+      samples: transactions.slice(0, 5).map(t => ({
+        d: t.date_mutation,
+        s: t.surface_reelle_bati,
+        p: t.valeur_fonciere,
+        m: t.prix_m2
+      }))
+    },
+    geo: { lat, lng, ville, codePostal, codeInsee }
+  })
 }
